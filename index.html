@@ -3,453 +3,432 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-  <title>D.A.P TV On-Demand</title>
+  <link rel="manifest" href="manifest.json">
   <style>
     body { background: #000; color: #fff; font-family: sans-serif; margin: 0; overflow-x: hidden; }
     #brand { text-align: center; color: #FFD700; font-size: clamp(18px, 4vw, 24px); font-weight: bold; padding: 10px; }
+    #channel-display { text-align: center; color: #FFD700; background: #000; padding: 8px; font-weight: bold; font-size: clamp(14px, 3vw, 18px); border-bottom: 2px solid #FFD700; }
     
-    /* Netflix Style Billboard / Hero Preview Area */
-    #hero-container {
-      position: relative;
-      width: 100%;
-      aspect-ratio: 16/9;
-      background: #0a0a0a;
-      overflow: hidden;
-      border-bottom: 3px solid #FFD700;
+    .video-container { position: relative; width: 100%; aspect-ratio: 16/9; background: #000; overflow: hidden; }
+    
+    #category-badge {
+        position: absolute; top: 15px; left: 15px; z-index: 2147483647;
+        background: transparent !important; color: #FFD700;
+        padding: 5px 10px; font-size: clamp(12px, 2vw, 14px); font-weight: bold;
+        text-transform: uppercase; text-shadow: 2px 2px 4px #000;
+        pointer-events: none;
     }
 
-    #hero-iframe {
-      position: absolute;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      border: none;
-      pointer-events: none;
+    #fs-channel-title {
+        position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+        z-index: 2147483646; color: #FFD700; font-weight: bold;
+        text-shadow: 2px 2px 8px #000; opacity: 0; transition: opacity 0.5s;
+        pointer-events: none; text-align: center; width: 90%; white-space: nowrap;
+        font-size: clamp(14px, 5vw, 28px);
     }
-
-    .hero-vignette {
-      position: absolute;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: linear-gradient(0deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.6) 100%);
-      z-index: 2;
-      pointer-events: none;
+    
+    /* Subtitle Display Overlay (Clean gold text with no background box) */
+    #subtitle-overlay {
+      position: absolute; bottom: 65px; left: 50%; transform: translateX(-50%);
+      z-index: 2147483646; color: #FFD700; background: transparent;
+      padding: 0; font-size: clamp(14px, 3vw, 22px); font-weight: bold;
+      text-align: center; max-width: 90%; display: none;
+      pointer-events: none; text-shadow: 2px 2px 6px #000, 0 0 2px #000; line-height: 1.4;
+      white-space: pre-line;
     }
-
-    #hero-content {
-      position: absolute;
-      bottom: 25px;
-      left: 25px;
-      z-index: 3;
-      max-width: 600px;
+    .video-container.cc-active #subtitle-overlay { display: block; }
+    
+    /* Transient Fullscreen Navigation & Controls Overlay */
+    .fs-nav { 
+        position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); 
+        z-index: 2147483647; display: flex; gap: 10px; align-items: center;
+        opacity: 0; visibility: hidden; transition: opacity 0.4s ease-in-out, visibility 0.4s ease-in-out; 
     }
+    .video-container.active-user .fs-nav { opacity: 1; visibility: visible; }
+    
+    .fs-btn { background: #FFD700 !important; color: #000 !important; border: none; padding: 8px 14px; cursor: pointer; font-weight: bold; border-radius: 4px; font-size: clamp(10px, 1.8vw, 14px); box-shadow: 0 2px 8px rgba(0,0,0,0.8); }
+    .fs-btn:hover { background: #fff !important; }
 
-    #hero-title {
-      color: #FFD700;
-      font-size: clamp(20px, 4vw, 36px);
-      font-weight: bold;
-      margin: 0 0 10px 0;
-      text-shadow: 2px 2px 6px #000;
+    .nav-box { display: flex; justify-content: space-between; padding: 10px; }
+    .nav-btn { background: #FFD700; color: #000; border: none; padding: 12px 24px; cursor: pointer; font-weight: bold; width: 48%; border-radius: 4px; }
+    
+    /* Custom Control Toggles Panel */
+    .controls-panel { display: flex; justify-content: center; gap: 10px; margin: 5px auto; }
+    .ctrl-action-btn { background: #333; color: #FFD700; border: 1px solid #FFD700; padding: 8px 16px; cursor: pointer; font-weight: bold; border-radius: 4px; font-size: 14px; }
+    .ctrl-action-btn:hover { background: #FFD700; color: #000; }
+
+    /* Invisible Shield Overlay to completely intercept clicks and prevent Dailymotion overlays from triggering */
+    #click-shield {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      z-index: 2147483645; background: transparent; display: none;
     }
+    .video-container.fullscreen-mode #click-shield { display: block; }
+    .video-container.fullscreen-mode.active-user #click-shield { pointer-events: none; }
 
-    #hero-desc {
-      color: #ddd;
-      font-size: clamp(12px, 2vw, 15px);
-      margin: 0 0 15px 0;
-      text-shadow: 1px 1px 4px #000;
-      line-height: 1.4;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-
-    .hero-btn-group {
-      display: flex;
-      gap: 10px;
-    }
-
-    .netflix-btn-play {
-      background: #FFD700;
-      color: #000;
-      border: none;
-      padding: 10px 22px;
-      font-weight: bold;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: clamp(12px, 2vw, 15px);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-    }
-    .netflix-btn-play:hover { background: #fff; }
-
-    .netflix-btn-info {
-      background: rgba(109, 109, 110, 0.7);
-      color: #fff;
-      border: none;
-      padding: 10px 22px;
-      font-weight: bold;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: clamp(12px, 2vw, 15px);
-      backdrop-filter: blur(4px);
-    }
-    .netflix-btn-info:hover { background: rgba(109, 109, 110, 0.9); }
-
-    /* Netflix Style Horizontal Row / Grid Section */
-    #vod-catalog-section {
-      padding: 20px 15px;
-      background: #000;
-    }
-
-    .section-heading {
-      color: #FFD700;
-      font-size: clamp(16px, 3vw, 20px);
-      font-weight: bold;
-      margin-bottom: 12px;
-    }
-
-    .poster-row {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-      gap: 12px;
-    }
-
-    .poster-card {
-      background: #141414;
-      border: 1px solid #222;
-      border-radius: 6px;
-      overflow: hidden;
-      cursor: pointer;
-      transition: transform 0.25s ease, border-color 0.25s ease;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .poster-card:hover {
-      transform: scale(1.05);
-      border-color: #FFD700;
-      z-index: 10;
-    }
-
-    .poster-img-wrap {
-      position: relative;
-      width: 100%;
-      aspect-ratio: 2/3;
+    /* Now Playing Ticker Section with Marquee Scrolling */
+    #now-playing-section {
       background: #111;
-    }
-
-    .poster-img-wrap img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .poster-title-bar {
-      padding: 8px;
-      font-size: 12px;
-      font-weight: bold;
-      color: #fff;
-      text-align: center;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      background: #141414;
-    }
-
-    /* Fullscreen Modal View for Playing Full Movie */
-    #full-player-modal {
-      position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: #000;
-      z-index: 999999;
-      display: none;
-      flex-direction: column;
-    }
-
-    #full-player-header {
-      background: #111;
-      padding: 12px 20px;
+      border-top: 2px solid #FFD700;
+      border-bottom: 2px solid #FFD700;
+      padding: 12px 15px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border-bottom: 2px solid #FFD700;
+      margin-top: 5px;
+      overflow: hidden;
     }
 
-    #full-player-title {
-      color: #FFD700;
-      font-weight: bold;
-      font-size: 16px;
-    }
-
-    .close-modal-btn {
-      background: #FFD700;
-      color: #000;
-      border: none;
-      padding: 6px 14px;
-      font-weight: bold;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-
-    #full-player-body {
-      position: relative;
+    .marquee-container {
+      overflow: hidden;
+      white-space: nowrap;
       flex-grow: 1;
-      width: 100%;
-      background: #000;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-    }
-
-    #full-player-iframe {
-      position: absolute;
-      top: 0; left: 0; width: 100%; height: 100%;
-      border: none;
-    }
-
-    /* Episode Selector Overlay for Series */
-    #episode-selector {
+      margin-right: 15px;
       position: relative;
-      z-index: 10;
-      background: rgba(20, 20, 20, 0.95);
-      border: 2px solid #FFD700;
-      padding: 30px;
-      border-radius: 8px;
-      text-align: center;
-      max-width: 400px;
-      width: 90%;
-      display: none;
     }
 
-    #episode-selector h3 {
-      color: #FFD700;
-      margin-top: 0;
-    }
-
-    .ep-btn {
-      display: block;
-      width: 100%;
-      background: #333;
+    #now-playing-label {
+      display: inline-block;
       color: #fff;
-      border: 1px solid #555;
-      padding: 12px;
-      margin: 10px 0;
+      font-size: clamp(13px, 2.5vw, 16px);
       font-weight: bold;
-      border-radius: 4px;
-      cursor: pointer;
+      padding-left: 100%;
+      animation: marquee 15s linear infinite;
     }
-    .ep-btn:hover {
-      background: #FFD700;
-      color: #000;
-      border-color: #FFD700;
+
+    @keyframes marquee {
+      0% { transform: translate(0, 0); }
+      100% { transform: translate(-100%, 0); }
+    }
+
+    .live-feed-badge {
+      display: flex;
+      align-items: center;
+      background: #222;
+      border: 1px solid #444;
+      padding: 6px 10px;
+      border-radius: 20px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .live-dot {
+      width: 10px;
+      height: 10px;
+      background-color: #ff3b30;
+      border-radius: 50%;
+      margin-right: 6px;
+      box-shadow: 0 0 8px #ff3b30;
+      animation: pulse-red 1.5s infinite;
+    }
+
+    @keyframes pulse-red {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.7); }
+      70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(255, 59, 48, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 48, 0); }
+    }
+
+    .live-text {
+      color: #FFD700;
+      font-size: clamp(10px, 2vw, 12px);
+      font-weight: bold;
+      letter-spacing: 0.5px;
     }
   </style>
 </head>
 <body>
 
-<div id="brand">D.A.P TV ON-DEMAND</div>
+<div id="brand">D.A.P TV 24/7</div>
+<div id="channel-display">Loading Stream...</div>
 
-<!-- Netflix Style Hero Billboard Preview Player -->
-<div id="hero-container">
-  <div class="hero-vignette"></div>
-  <iframe id="hero-iframe" frameborder="0" allow="autoplay; encrypted-media"></iframe>
-  <div id="hero-content">
-    <h1 id="hero-title">Select a Movie</h1>
-    <p id="hero-desc">Click any movie poster below to preview a teaser clip right here, or click Play to watch the full feature.</p>
-    <div class="hero-btn-group">
-      <button class="netflix-btn-play" onclick="handlePlayButton()">▶ Play Movie</button>
-      <button class="netflix-btn-info" onclick="toggleHeroInfo()">ⓘ Overview</button>
-    </div>
+<div id="player-wrapper" class="video-container">
+  <div id="category-badge">D.A.P TV 24/7</div>
+  <div id="fs-channel-title">Stream Name</div>
+  <div id="subtitle-overlay"></div>
+  <div id="click-shield"></div>
+  
+  <!-- Transient Fullscreen Navigation, CC & Exit Box -->
+  <div class="fs-nav">
+      <button class="fs-btn" onclick="nav(-1)">PREV</button>
+      <button class="fs-btn" id="fs-cc-toggle-btn" onclick="toggleCC()">CC: ON</button>
+      <button class="fs-btn" onclick="toggleFullScreen()">EXIT</button>
+      <button class="fs-btn" onclick="nav(1)">NEXT</button>
+  </div>
+
+  <div id="player-container" style="width:100%; height:100%; position:relative;">
+    <iframe id="dm-player" frameborder="0" width="100%" height="100%" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen style="position:absolute; top:0; left:0; width:100%; height:100%;"></iframe>
   </div>
 </div>
 
-<!-- On-Demand Poster Catalog Row -->
-<div id="vod-catalog-section">
-  <div class="section-heading">D.A.P On-Demand Library</div>
-  <div class="poster-row" id="poster-grid">
-    <!-- Populated dynamically via JS -->
-  </div>
+<div class="controls-panel">
+  <button id="fs-toggle-btn" class="ctrl-action-btn" onclick="toggleFullScreen()">FULLSCREEN</button>
+  <button id="main-cc-toggle-btn" class="ctrl-action-btn" onclick="toggleCC()">CC: ON</button>
 </div>
 
-<!-- Fullscreen Feature Player Modal -->
-<div id="full-player-modal">
-  <div id="full-player-header">
-    <span id="full-player-title">Now Playing</span>
-    <button class="close-modal-btn" onclick="closeFullFeature()">CLOSE ✕</button>
+<div class="nav-box">
+  <button class="nav-btn" onclick="nav(-1)">PREVIOUS</button>
+  <button class="nav-btn" onclick="nav(1)">NEXT</button>
+</div>
+
+<div id="now-playing-section">
+  <div class="marquee-container">
+    <div id="now-playing-label">Playing: Loading...</div>
   </div>
-  <div id="full-player-body">
-    <!-- Episode Selector Box -->
-    <div id="episode-selector">
-      <h3>Select Episode</h3>
-      <div id="episode-list"></div>
-    </div>
-    <iframe id="full-player-iframe" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen style="display:none;"></iframe>
+  <div class="live-feed-badge">
+    <div class="live-dot"></div>
+    <span class="live-text">D.A.P TV 24/7 FEED</span>
   </div>
 </div>
 
 <script>
-  const vodLibrary = [
-    // Featured / Active Stream Links
-    { name: "Strive", id: "k4ObpDYw3BipbbHWEW2", poster: "Strive.jpg", desc: "Because everyone deserves a chance. An inspiring feature starring Danny Glover.", clipStart: 120, clipEnd: 155, active: true },
-    { name: "Ink", id: "k1OjGBaUwtLuvrHWG9U", poster: "INK.jpg", desc: "A Jamin Winans film exploring dreamwalkers, soul recovery, and emotional shadows.", clipStart: 30, clipEnd: 65, active: true },
-    { name: "REDWOOD MASSACRE", id: "k2btb1TuZW82y7HWJ4u", poster: "REDWOOD MASSACRE.jpg", desc: "Based on a horrifying true story, a weekend getaway turns into a bloodbath.", clipStart: 10, clipEnd: 45, active: true },
-    { name: "Nasty Old People", id: "k2onvpqu5aRLmUHWMR4", poster: "Nasty Old People.jpg", desc: "Dark comedy and unpredictable senior chaos unfold in the home care system.", clipStart: 85, clipEnd: 120, active: true },
-    { name: "Half Empty", id: "k3oEnpPscWIfF8HWOdw", poster: "Half Empty.jpg", desc: "A gripping drama directed by Troy Carlton exploring intense personal stakes.", clipStart: 40, clipEnd: 75, active: true },
-    { name: "Artifacts Of Idealism", id: "k7iwKjmDYVxYRSHWR4q", poster: "ARTIFACTS OF IDEALISM.jpg", desc: "Directed by Sean Corbett, a thought-provoking exploration of truth and philosophy.", clipStart: 15, clipEnd: 50, active: true },
-    { name: "TIGER", id: "k5q4oSCRSb8wg7HWT2S", poster: "TIGER.jpg", desc: "Beaufort presents Tiger, starring Rachel Blais and James McFay.", clipStart: 60, clipEnd: 95, active: true },
-    
-    // Pioneer One Series (Properly linked with active feature flags and exact episode links)
-    { 
-      name: "PIONEER ONE", 
-      id: "kEb8S4Tg2VTTcTHYsZE",
-      isSeries: true,
-      episodes: [
-        { title: "Episode 1", id: "kEb8S4Tg2VTTcTHYsZE" },
-        { title: "Episode 2", id: "k6wRGZJjYfsXnsHYtX8" }
-      ],
-      poster: "PIONEER ONE.jpg", 
-      desc: "Sci-fi drama series exploring a mysterious object landing on Earth.", 
-      clipStart: 10, clipEnd: 45, active: true 
-    },
+  if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }
 
-    // Complete Poster Library Catalog
-    { name: "56", id: "", poster: "56.jpg", desc: "Award-winning documentary short featured at the 51st United Nations Human Rights Council.", clipStart: 0, clipEnd: 30, active: false },
-    { name: "A Man Full of Trouble", id: "", poster: "A MAN FULL OF TROUBLE.jpg", desc: "A film by Michael Johnston. A dramatic historical character portrait.", clipStart: 0, clipEnd: 30, active: false },
-    { name: "Afraid to Sleep", id: "", poster: "AFRAID TO SLEEP.jpg", desc: "A short film exploring psychological suspense and nocturnal dread.", clipStart: 0, clipEnd: 30, active: false },
-    { name: "Alike", id: "", poster: "Alike.jpg", desc: "Directed by Daniel Martínez Lara & Rafa Cano Méndez. A touching animated short.", clipStart: 0, clipEnd: 30, active: false },
-    { name: "Angels", id: "", poster: "ANGELS.jpg", desc: "A film by Jane Labous. A powerful new documentary exploring a silent crisis.", clipStart: 0, clipEnd: 30, active: false },
-    { name: "Are You There?", id: "", poster: "ARE YOU THERE.jpg", desc: "Written and directed by Austin Brink. Produced by AJ Films.", clipStart: 0, clipEnd: 30, active: false },
-    { name: "Bad Dad", id: "", poster: "BAD DAD.jpg", desc: "Written & directed by Cameron Macgowan, starring Tyler Rive and Mandy Stobo.", clipStart: 0, clipEnd: 30, active: false },
-    { name: "Between the Lines", id: "", poster: "Between the Lines.jpg", desc: "A fly fishing documentary film exploring wild waters.", clipStart: 0, clipEnd: 30, active: false },
-    { name: "Bitter Sea", id: "", poster: "BITTER SEA.jpg", desc: "A short film by Fateme Ahmadi, starring Ada Condeescu and Jeff Mirza.", clipStart: 0, clipEnd: 30, active: false },
-    { name: "Blood Bullet", id: "", poster: "BLOOD BULLET.jpg", desc: "A film by R.L. Allman. A tense thriller narrative.", clipStart: 0, clipEnd: 30, active: false },
-    { name: "Bucket", id: "", poster: "BUCKET.jpg", desc: "A Best Home Films production directed by LucasBrothers.", clipStart: 0, clipEnd: 30, active: false },
-    { name: "Caminandes", id: "", poster: "Caminandes.jpg", desc: "Winner of the Jerry Goldsmith Award for Best Score for an Animated Short Film.", clipStart: 0, clipEnd: 30, active: false },
-    { name: "Cheap & Clean", id: "", poster: "CHEAP & CLEAN.jpg", desc: "A film by Ebony G. Patterson. An exploration into dancehall culture.", clipStart: 0, clipEnd: 30, active: false },
-    { name: "Dear Dad", id: "", poster: "Dear Dad.jpg", desc: "Nowness Picks, Berlin Commercial Shortlist award winner.", clipStart: 0, clipEnd: 30, active: false },
-    { name: "Don Affiliation PodCast", id: "", poster: "Don Affiliation PodCast .png", desc: "Podcast TV series exploring authentic insights and enterprise discussions.", clipStart: 0, clipEnd: 30, active: false },
-    { name: "Dream Chaser", id: "", poster: "DREAM CHASER.jpg", desc: "Yaki Pictures presents Dream Chaser. The pursuit of ambition against all bounds.", clipStart: 0, clipEnd: 30, active: false },
-    { name: "Elephant's Dream", id: "", poster: "Elephant's Dream.jpg", desc: "The Orange Open Movie Project presents Elephants Dream.", clipStart: 0, clipEnd: 30, active: false },
-    { name: "Holdout", id: "", poster: "HOLDOUT.jpg", desc: "A film by Brian L. Tan, starring Toshi Toda, Mick Tolbert, and Wesly John.", clipStart: 0, clipEnd: 30, active: false },
-    { name: "Immanuel", id: "", poster: "IMMANUEL.jpg", desc: "Basic Egg Trio Productions presents an Ateneo de Manila University thesis.", clipStart: 0, clipEnd: 30, active: false },
-    { name: "Las Bestias", id: "", poster: "LAS BESTIAS.jpg", desc: "ESCAC / The Films On Fire / Slyman Arts presentan. Suspense and tension.", clipStart: 0, clipEnd: 30, active: false },
-    { name: "Marza", id: "", poster: "MARZA.jpg", desc: "Inspired by a true story. Those with nothing give everything.", clipStart: 0, clipEnd: 30, active: false },
-    { name: "Miami's Little Havana", id: "", poster: "MIAMI'S LITTLE HAVANA.jpg", desc: "A documentary film directed by Marcus Bauer exploring culture and community.", clipStart: 0, clipEnd: 30, active: false },
-    { name: "Morevna", id: "", poster: "MOREVNA.jpg", desc: "Action-packed open source animated project featuring sharp blade choreography.", clipStart: 0, clipEnd: 30, active: false },
-    { name: "Morning Tea", id: "", poster: "Morning Tea.jpg", desc: "A film by Debarati Chatterjee and Sabuj Sil with sound design.", clipStart: 0, clipEnd: 30, active: false },
-    { name: "Princess Iron Fan", id: "", poster: "Princess Iron Fan.jpg", desc: "China's first animated feature film (1941) from the Chinese Film Classics Collection.", clipStart: 0, clipEnd: 30, active: false },
-    { name: "Raiders of Galaxy", id: "", poster: "RAIDERS OF GALAXY.jpg", desc: "An Adda Audio Visual Ltd. production and a Joseph Lai release. Sci-fi action.", clipStart: 0, clipEnd: 30, active: false },
-    { name: "Red", id: "", poster: "Red.jpg", desc: "An atmospheric thriller navigating the deep shadows of a scarlet forest.", clipStart: 0, clipEnd: 30, active: false },
-    { name: "Seder Masochism", id: "", poster: "SEDER MASOCHISM.jpg", desc: "A new animated musical from the creator of Sita Sings the Blues.", clipStart: 0, clipEnd: 30, active: false },
-    { name: "Senpai", id: "", poster: "SENPAI.jpg", desc: "Anime-style club adventures and high school antics.", clipStart: 0, clipEnd: 30, active: false },
-    { name: "Singularity", id: "", poster: "SINGULARITY.jpg", desc: "Sci-fi visual art and conceptual masterpiece exploring cybernetic evolution.", clipStart: 0, clipEnd: 30, active: false },
-    { name: "Sintel", id: "", poster: "SINTEL.jpg", desc: "An epic open movie fantasy adventure about a young girl and her dragon companion.", clipStart: 0, clipEnd: 30, active: false },
-    { name: "Sita Sings The Blues", id: "", poster: "Sita Sings The Blues.jpg", desc: "The greatest break-up story ever told. A film by Nina Paley.", clipStart: 0, clipEnd: 30, active: false },
-    { name: "Sol Lavante", id: "", poster: "SOL LAVANTE.jpg", desc: "An immersive hand-drawn animated short film experience.", clipStart: 0, clipEnd: 30, active: false },
-    { name: "Space Transformers", id: "", poster: "SPACE TRANSFORMERS.jpg", desc: "Mecha combat and interstellar warfare across futuristic retro gridlines.", clipStart: 0, clipEnd: 30, active: false },
-    { name: "SpellBound", id: "", poster: "SpellBound.jpg", desc: "An animated journey of wonder, mail delivery, and magical neighborhood thresholds.", clipStart: 0, clipEnd: 30, active: false },
-    { name: "Spoetnik", id: "", poster: "SPOETNIK.jpg", desc: "Halal Pictures presents in co-production with NTR. A film by Noël Loozen.", clipStart: 0, clipEnd: 30, active: false },
-    { name: "Story To Tell", id: "", poster: "Story To Tell.jpg", desc: "A short film inspired by Notorious B.I.G.'s 'I Got a Story to Tell'.", clipStart: 0, clipEnd: 30, active: false },
-    { name: "Tell Tale Signs", id: "", poster: "Tell Tale Signs.jpg", desc: "A short coming-of-age film by Ginevra Gentili. Award winner.", clipStart: 0, clipEnd: 30, active: false },
-    { name: "Terracotta", id: "", poster: "Terracotta.jpg", desc: "Musicbox Club Docs exploring clubs, culture, and location.", clipStart: 0, clipEnd: 30, active: false },
-    { name: "The Alchemy of Spirit", id: "", poster: "THE ALCHEMY OF SPIRIT.jpg", desc: "A film directed by Droid ID exploring inner transformation by the water.", clipStart: 0, clipEnd: 30, active: false },
-    { name: "Waysland", id: "", poster: "WAYSLAND.jpg", desc: "A Hop Top Productions film directed by Lyria Garcia.", clipStart: 0, clipEnd: 30, active: false },
-    { name: "Wing It!", id: "", poster: "WING IT!.jpg", desc: "A Pet Project featuring pet-powered engineering and blueprint animation.", clipStart: 0, clipEnd: 30, active: false }
+  const display = document.getElementById('channel-display');
+  const nowPlayingLabel = document.getElementById('now-playing-label');
+  const titleOverlay = document.getElementById('fs-channel-title');
+  const subtitleOverlay = document.getElementById('subtitle-overlay');
+  const iframe = document.getElementById('dm-player');
+  const wrapper = document.getElementById('player-wrapper');
+  const mainCcBtn = document.getElementById('main-cc-toggle-btn');
+  const fsCcBtn = document.getElementById('fs-cc-toggle-btn');
+  
+  // Complete Subtitles Database mapped directly to Nasty Old People's Video ID
+  const subtitlesData = {
+    "k2onvpqu5aRLmUHWMR4": [
+      { start: 11, end: 20, text: "Danish translation by Michael Wahlstrøm" },
+      { start: 89, end: 91, text: "- Isn't it beautiful?\n- What the hell are you doing home?" },
+      { start: 96, end: 101, text: "Have you ever seen anything so luxurious?" },
+      { start: 111, end: 114, text: "My name is Mette" },
+      { start: 116, end: 119, text: "I am nineteen" },
+      { start: 126, end: 131, text: "When I was thirteen, I became a Nazi" },
+      { start: 139, end: 143, text: "Everyone loves me" },
+      { start: 144, end: 150, text: "Because they can come from both sides,\nso we'll position two here - and here" },
+      { start: 152, end: 155, text: "So it goes without saying that they will attack from behind" },
+      { start: 156, end: 159, text: "The people I take care of..." },
+      { start: 162, end: 168, text: "Here! Highest risk of attack,\nhere we are most vulnerable" },
+      { start: 171, end: 174, text: "The ones I have trouble with" },
+      { start: 174, end: 177, text: "Maybe Mette wants to give a speech instead?" },
+      { start: 177, end: 179, text: "Of course I want to give a speech" },
+      { start: 180, end: 183, text: "They impress me" },
+      { start: 190, end: 192, text: "But most of all..." },
+      { start: 192, end: 196, text: "...Colleagues in home care" },
+      { start: 198, end: 202, text: "I gladly take care of elderly people whom no one else bothers to help" },
+      { start: 204, end: 217, text: "- Look what it did to me\n- Welcome to reality" },
+      { start: 220, end: 223, text: "Gathering at eight o'clock?!" },
+      { start: 226, end: 231, text: "The first time I met Martha,\nshe was afraid of almost everything" },
+      { start: 232, end: 236, text: "Of the man who delivers the newspapers" },
+      { start: 240, end: 241, text: "...Of the birds" },
+      { start: 244, end: 247, text: "Of slipping on the rug..." },
+      { start: 250, end: 253, text: "...Of men" },
+      { start: 257, end: 260, text: "But most of all...\n...Of the home care service poisoning her" },
+      { start: 267, end: 270, text: "Open your mouth now, wide!" },
+      { start: 274, end: 278, text: "Behind the middle door... lives Elsie" },
+      { start: 280, end: 284, text: "Elsie is almost a hundred years old" },
+      { start: 286, end: 290, text: "Elsie is mean to almost everyone" },
+      { start: 291, end: 299, text: "To the man who delivers the newspapers...\n...To children on the playground" },
+      { start: 304, end: 311, text: "To the home care helper\nDo you know what it means? The little one is dead! Abortion!" },
+      { start: 318, end: 330, text: "But she is very unpleasant to Mr. W,\nwho lives behind the window opposite" },
+      { start: 333, end: 337, text: "Mr. W has been writing a book for twenty years" },
+      { start: 339, end: 343, text: "When he got to the last page, ...he got cancer" },
+      { start: 348, end: 351, text: "Therefore, he is very bitter" },
+      { start: 360, end: 363, text: "At those who can live" },
+      { start: 366, end: 371, text: "But most of all... because he needs home care even though he is only 49 years old" }
+    ]
+  };
+
+  // Master Network Catalog: The Redwood Massacre ID is restored safely in sequence alongside all titles
+  const stationData = [
+    { name: "Strive", id: "k4ObpDYw3BipbbHWEW2", duration: 5400, embed: "https://www.dailymotion.com/embed/video/k4ObpDYw3BipbbHWEW2?autoplay=1&mute=1&controls=0&queue-enable=0&sharing-enable=0&related-video=0" },
+    { name: "Ink", id: "k1OjGBaUwtLuvrHWG9U", duration: 5400, embed: "https://www.dailymotion.com/embed/video/k1OjGBaUwtLuvrHWG9U?autoplay=1&mute=1&controls=0&queue-enable=0&sharing-enable=0&related-video=0" },
+    { name: "THE REDWOOD MASSACRE", id: "k2btb1TuZW82y7HWJ4u", duration: 5400, embed: "https://www.dailymotion.com/embed/video/k2btb1TuZW82y7HWJ4u?autoplay=1&mute=1&controls=0&queue-enable=0&sharing-enable=0&related-video=0" },
+    { name: "Nasty Old People", id: "k2onvpqu5aRLmUHWMR4", duration: 5400, embed: "https://www.dailymotion.com/embed/video/k2onvpqu5aRLmUHWMR4?autoplay=1&mute=1&controls=0&queue-enable=0&sharing-enable=0&related-video=0" },
+    { name: "Half Empty", id: "k3oEnpPscWIfF8HWOdw", duration: 5400, embed: "https://www.dailymotion.com/embed/video/k3oEnpPscWIfF8HWOdw?autoplay=1&mute=1&controls=0&queue-enable=0&sharing-enable=0&related-video=0" },
+    { name: "Artifacts Of Idealism", id: "k7iwKjmDYVxYRSHWR4q", duration: 5400, embed: "https://www.dailymotion.com/embed/video/k7iwKjmDYVxYRSHWR4q?autoplay=1&mute=1&controls=0&queue-enable=0&sharing-enable=0&related-video=0" },
+    { name: "Tiger", id: "k5q4oSCRSb8wg7HWT2S", duration: 5400, embed: "https://www.dailymotion.com/embed/video/k5q4oSCRSb8wg7HWT2S?autoplay=1&mute=1&controls=0&queue-enable=0&sharing-enable=0&related-video=0" },
+    { name: "Pioneer One: Ep. 1", id: "k3yLmn40bkRQJtHYsZE", duration: 2400, embed: "https://www.dailymotion.com/embed/video/k3yLmn40bkRQJtHYsZE?autoplay=1&mute=1&controls=0&queue-enable=0&sharing-enable=0&related-video=0" },
+    { name: "Pioneer One: Ep. 2", id: "k2bedAe74dcpEQHYtX8", duration: 2400, embed: "https://www.dailymotion.com/embed/video/k2bedAe74dcpEQHYtX8?autoplay=1&mute=1&controls=0&queue-enable=0&sharing-enable=0&related-video=0" }
   ];
 
-  let currentSelectedMovie = vodLibrary[0];
+  let currentIndex = 0;
+  const GLOBAL_EPOCH_KEY = 'dap_247_global_broadcast_epoch';
+  const TOTAL_CHANNELS = stationData.length;
 
-  function renderCatalog() {
-    const grid = document.getElementById('poster-grid');
-    grid.innerHTML = "";
+  // Continuous 24/7 Global Timeline Engine: Keeps a permanent, un-interruptible master clock running forward like live TV.
+  function getLiveVirtualTimeline(channelIndex) {
+    let masterEpochs = JSON.parse(localStorage.getItem(GLOBAL_EPOCH_KEY)) || {};
+    let now = Math.floor(Date.now() / 1000);
 
-    vodLibrary.forEach((movie) => {
-      let card = document.createElement('div');
-      card.className = 'poster-card';
-      card.onclick = () => selectMovieForPreview(movie);
+    if (!masterEpochs[channelIndex]) {
+      masterEpochs[channelIndex] = {
+        catalogIdx: channelIndex % stationData.length,
+        startTime: now
+      };
+      localStorage.setItem(GLOBAL_EPOCH_KEY, JSON.stringify(masterEpochs));
+    }
 
-      card.innerHTML = `
-        <div class="poster-img-wrap">
-          <img src="${movie.poster}" alt="${movie.name}" loading="lazy">
-        </div>
-        <div class="poster-title-bar">${movie.name}</div>
-      `;
-      grid.appendChild(card);
-    });
+    let channelProg = masterEpochs[channelIndex];
+    let currentStation = stationData[channelProg.catalogIdx];
+    let elapsedTotal = now - channelProg.startTime;
+
+    while (elapsedTotal >= currentStation.duration) {
+      elapsedTotal -= currentStation.duration;
+      channelProg.catalogIdx = (channelProg.catalogIdx + 1) % stationData.length;
+      channelProg.startTime = now - elapsedTotal;
+      currentStation = stationData[channelProg.catalogIdx];
+      localStorage.setItem(GLOBAL_EPOCH_KEY, JSON.stringify(masterEpochs));
+    }
+
+    return {
+      catalogIdx: channelProg.catalogIdx,
+      offset: elapsedTotal
+    };
   }
 
-  function selectMovieForPreview(movie) {
-    currentSelectedMovie = movie;
-    document.getElementById('hero-title').innerText = movie.name;
-    document.getElementById('hero-desc').innerText = movie.desc;
-
-    const heroIframe = document.getElementById('hero-iframe');
-    let previewId = movie.isSeries ? movie.episodes[0].id : movie.id;
-
-    if (movie.active && previewId) {
-      heroIframe.src = `https://www.dailymotion.com/embed/video/${previewId}?autoplay=1&mute=1&controls=0&start=${movie.clipStart}&end=${movie.clipEnd}&loop=1&queue-enable=0&sharing-enable=0&related-video=0`;
-      heroIframe.style.display = "block";
+  function applyCCUIState() {
+    let btnText = ccEnabled ? "CC: ON" : "CC: OFF";
+    mainCcBtn.innerText = btnText;
+    fsCcBtn.innerText = btnText;
+    
+    if (ccEnabled) {
+      wrapper.classList.add('cc-active');
     } else {
-      heroIframe.src = "";
-      heroIframe.style.display = "none";
+      wrapper.classList.remove('cc-active');
+      subtitleOverlay.innerText = "";
     }
   }
 
-  function handlePlayButton() {
-    if (!currentSelectedMovie.active || (!currentSelectedMovie.id && !currentSelectedMovie.isSeries)) {
-      alert("This title's full feature link is coming soon!");
+  let ccEnabled = true;
+
+  function toggleCC() {
+    ccEnabled = !ccEnabled;
+    applyCCUIState();
+    if (ccEnabled) {
+      updateSubtitles(playbackSeconds);
+    } else {
+      subtitleOverlay.innerText = "";
+    }
+  }
+
+  let playbackSeconds = 0;
+  let subtitleTimer = null;
+  let currentActiveCatalogIdx = 0;
+
+  function updateSubtitles(currentTime) {
+    if (!ccEnabled) {
+      subtitleOverlay.innerText = "";
+      return;
+    }
+    
+    const station = stationData[currentActiveCatalogIdx];
+    const cues = subtitlesData[station.id];
+    
+    if (!cues || cues.length === 0) {
+      subtitleOverlay.innerText = "";
       return;
     }
 
-    const modal = document.getElementById('full-player-modal');
-    const modalTitle = document.getElementById('full-player-title');
-    const modalIframe = document.getElementById('full-player-iframe');
-    const selector = document.getElementById('episode-selector');
-    const episodeList = document.getElementById('episode-list');
-
-    modalTitle.innerText = "Now Playing: " + currentSelectedMovie.name;
-
-    if (currentSelectedMovie.isSeries) {
-      modalIframe.style.display = "none";
-      selector.style.display = "block";
-      episodeList.innerHTML = "";
-
-      currentSelectedMovie.episodes.forEach(ep => {
-        let btn = document.createElement('button');
-        btn.className = 'ep-btn';
-        btn.innerText = ep.title;
-        btn.onclick = () => {
-          selector.style.display = "none";
-          modalIframe.style.display = "block";
-          modalIframe.src = `https://www.dailymotion.com/embed/video/${ep.id}?autoplay=1&mute=0&controls=1&queue-enable=0&sharing-enable=0&related-video=0`;
-        };
-        episodeList.appendChild(btn);
-      });
+    let activeCue = cues.find(c => currentTime >= c.start && currentTime <= c.end);
+    if (activeCue) {
+      subtitleOverlay.innerText = activeCue.text;
     } else {
-      selector.style.display = "none";
-      modalIframe.style.display = "block";
-      modalIframe.src = `https://www.dailymotion.com/embed/video/${currentSelectedMovie.id}?autoplay=1&mute=0&controls=1&queue-enable=0&sharing-enable=0&related-video=0`;
+      subtitleOverlay.innerText = "";
     }
+  }
+
+  function playStation(channelIndex) {
+    currentIndex = channelIndex;
+    let liveState = getLiveVirtualTimeline(channelIndex);
+    currentActiveCatalogIdx = liveState.catalogIdx;
     
-    modal.style.display = 'flex';
-  }
-
-  function closeFullFeature() {
-    const modal = document.getElementById('full-player-modal');
-    const modalIframe = document.getElementById('full-player-iframe');
+    const station = stationData[currentActiveCatalogIdx];
+    playbackSeconds = liveState.offset;
     
-    modalIframe.src = "";
-    modal.style.display = 'none';
+    let cleanUrl = `${station.embed}&start=${playbackSeconds}`;
+    iframe.src = cleanUrl;
+    
+    display.innerText = station.name;
+    nowPlayingLabel.innerText = "Now Playing: " + station.name;
+    
+    localStorage.setItem('dap_247_last_channel', channelIndex);
+    
+    titleOverlay.innerText = station.name;
+    titleOverlay.style.opacity = 1;
+    setTimeout(() => { titleOverlay.style.opacity = 0; }, 2000);
+
+    clearInterval(subtitleTimer);
+    updateSubtitles(playbackSeconds);
+    
+    subtitleTimer = setInterval(() => {
+      playbackSeconds++;
+      
+      let checkState = getLiveVirtualTimeline(currentIndex);
+      if (checkState.catalogIdx !== currentActiveCatalogIdx) {
+        playStation(currentIndex);
+        return;
+      }
+      
+      updateSubtitles(playbackSeconds);
+    }, 1000);
   }
 
-  function toggleHeroInfo() {
-    alert(currentSelectedMovie.name + "\n\n" + currentSelectedMovie.desc);
+  function nav(direction) {
+    let nextIdx = (currentIndex + direction + TOTAL_CHANNELS) % TOTAL_CHANNELS;
+    playStation(nextIdx);
   }
 
-  renderCatalog();
-  selectMovieForPreview(vodLibrary[0]);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === "ArrowUp" || e.key === "ArrowLeft") { e.preventDefault(); nav(-1); }
+    if (e.key === "ArrowDown" || e.key === "ArrowRight") { e.preventDefault(); nav(1); }
+  });
+
+  function toggleFullScreen() {
+    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+      if (wrapper.requestFullscreen) {
+        wrapper.requestFullscreen();
+      } else if (wrapper.webkitRequestFullscreen) {
+        wrapper.webkitRequestFullscreen();
+      }
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      } else if (wrapper.webkitExitFullscreen) {
+        wrapper.webkitExitFullscreen();
+      }
+    }
+  }
+
+  function checkFullscreen() {
+    if (document.fullscreenElement || document.webkitFullscreenElement) {
+        wrapper.classList.add('fullscreen-mode');
+        triggerActivity();
+    } else {
+        wrapper.classList.remove('fullscreen-mode');
+        wrapper.classList.remove('active-user');
+    }
+  }
+
+  document.addEventListener('fullscreenchange', checkFullscreen);
+  document.addEventListener('webkitfullscreenchange', checkFullscreen);
+
+  let fadeTimer = null;
+  function triggerActivity() {
+    if (document.fullscreenElement || document.webkitFullscreenElement) {
+      wrapper.classList.add('active-user');
+      clearTimeout(fadeTimer);
+      fadeTimer = setTimeout(() => {
+        wrapper.classList.remove('active-user');
+      }, 3000);
+    }
+  }
+
+  wrapper.addEventListener('mousemove', triggerActivity);
+  wrapper.addEventListener('mousedown', triggerActivity);
+  wrapper.addEventListener('touchstart', triggerActivity, { passive: true });
+
+  const savedChannel = localStorage.getItem('dap_247_last_channel');
+  let initialIndex = savedChannel !== null ? parseInt(savedChannel) : Math.floor(Math.random() * TOTAL_CHANNELS);
+
+  applyCCUIState();
+  playStation(initialIndex);
 </script>
 </body>
 </html>
