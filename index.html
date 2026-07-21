@@ -235,7 +235,7 @@
     ]
   };
 
-  // Master Network Catalog: The Redwood Massacre ID is restored safely in sequence alongside all titles
+  // Master Network Catalog: All titles including The Redwood Massacre
   const stationData = [
     { name: "Strive", id: "k4ObpDYw3BipbbHWEW2", duration: 5400, embed: "https://www.dailymotion.com/embed/video/k4ObpDYw3BipbbHWEW2?autoplay=1&mute=1&controls=0&queue-enable=0&sharing-enable=0&related-video=0" },
     { name: "Ink", id: "k1OjGBaUwtLuvrHWG9U", duration: 5400, embed: "https://www.dailymotion.com/embed/video/k1OjGBaUwtLuvrHWG9U?autoplay=1&mute=1&controls=0&queue-enable=0&sharing-enable=0&related-video=0" },
@@ -252,6 +252,12 @@
   const GLOBAL_EPOCH_KEY = 'dap_247_global_broadcast_epoch';
   const TOTAL_CHANNELS = stationData.length;
 
+  // Clear stale cached epoch data so the browser forces a clean refresh of the full index list
+  if (!localStorage.getItem('dap_247_catalog_fix_v2')) {
+    localStorage.removeItem(GLOBAL_EPOCH_KEY);
+    localStorage.setItem('dap_247_catalog_fix_v2', 'true');
+  }
+
   // Continuous 24/7 Global Timeline Engine: Keeps a permanent, un-interruptible master clock running forward like live TV.
   function getLiveVirtualTimeline(channelIndex) {
     let masterEpochs = JSON.parse(localStorage.getItem(GLOBAL_EPOCH_KEY)) || {};
@@ -266,6 +272,10 @@
     }
 
     let channelProg = masterEpochs[channelIndex];
+    if (channelProg.catalogIdx >= stationData.length) {
+      channelProg.catalogIdx = 0;
+    }
+    
     let currentStation = stationData[channelProg.catalogIdx];
     let elapsedTotal = now - channelProg.startTime;
 
@@ -371,7 +381,7 @@
   }
 
   function nav(direction) {
-    let nextIdx = (currentIndex + direction + TOTAL_CHANNELS) % TOTAL_CHANNELS;
+    let nextIdx = (currentIndex + direction + TOTAL_CHANNELS) % TOTAL_CHANNels;
     playStation(nextIdx);
   }
 
