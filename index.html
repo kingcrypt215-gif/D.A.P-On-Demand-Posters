@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-  <title>D.A.P TV On-Demand</title>
+  <title>D.A.P On-Demand</title>
   <style>
     body { background: #000; color: #fff; font-family: sans-serif; margin: 0; overflow-x: hidden; }
-    #brand { text-align: center; color: #FFD700; font-size: clamp(18px, 4vw, 24px); font-weight: bold; padding: 10px; }
+    #brand { text-align: center; color: #FFD700; font-size: clamp(18px, 4vw, 24px); font-weight: bold; padding: 10px; letter-spacing: 1px; }
     
     /* Netflix Style Billboard / Hero Preview Area */
     #hero-container {
@@ -187,6 +187,8 @@
       align-items: center;
       padding: 15px;
       box-sizing: border-box;
+      backdrop-filter: blur(5px);
+      animation: fadeIn 0.2s ease-in-out;
     }
 
     .details-content-box {
@@ -242,6 +244,7 @@
       font-size: 15px;
       flex-grow: 1;
       text-align: center;
+      transition: background 0.2s;
     }
     .watch-now-btn:hover { background: #fff; }
 
@@ -287,81 +290,100 @@
       border-color: #FFD700;
     }
 
-    /* Custom D.A.P Player Shell Modal */
+    /* Custom D.A.P Theater Player Modal */
     #full-player-modal {
       position: fixed;
       top: 0; left: 0; width: 100%; height: 100%;
-      background: #000;
+      background: rgba(0,0,0,0.96);
       z-index: 999999;
       display: none;
       flex-direction: column;
+      animation: fadeIn 0.25s ease-in-out;
     }
 
     #full-player-header {
-      background: #0a0a0a;
-      padding: 14px 20px;
+      background: linear-gradient(180deg, #111 0%, #080808 100%);
+      padding: 16px 24px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border-bottom: 2px solid #FFD700;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+      border-bottom: 3px solid #FFD700;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.8);
+      z-index: 10;
     }
 
     .dap-player-brand {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
     }
 
     .dap-live-dot {
-      width: 10px;
-      height: 10px;
+      width: 12px;
+      height: 12px;
       background: #FFD700;
       border-radius: 50%;
-      box-shadow: 0 0 8px #FFD700;
+      box-shadow: 0 0 10px #FFD700;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 0.6; transform: scale(0.95); }
+      50% { opacity: 1; transform: scale(1.05); }
+      100% { opacity: 0.6; transform: scale(0.95); }
     }
 
     #full-player-title {
       color: #FFD700;
       font-weight: bold;
-      font-size: clamp(14px, 3vw, 18px);
-      letter-spacing: 0.5px;
+      font-size: clamp(15px, 3.5vw, 20px);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.5);
     }
 
     .close-modal-btn {
       background: #FFD700;
       color: #000;
       border: none;
-      padding: 8px 16px;
+      padding: 10px 20px;
       font-weight: bold;
       border-radius: 4px;
       cursor: pointer;
-      font-size: 13px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+      font-size: 14px;
+      letter-spacing: 0.5px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+      transition: background 0.2s, transform 0.1s;
     }
-    .close-modal-btn:hover { background: #fff; }
+    .close-modal-btn:hover { background: #fff; transform: scale(1.02); }
 
     #full-player-body {
       position: relative;
       flex-grow: 1;
       width: 100%;
+      height: calc(100% - 70px);
       background: #000;
       display: flex;
-      flex-direction: column;
       justify-content: center;
       align-items: center;
     }
 
     #full-player-iframe {
-      position: absolute;
-      top: 0; left: 0; width: 100%; height: 100%;
+      width: 100%;
+      height: 100%;
       border: none;
+      background: #000;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
   </style>
 </head>
 <body>
 
-<div id="brand">D.A.P TV ON-DEMAND</div>
+<div id="brand">D.A.P ON-DEMAND</div>
 
 <!-- Netflix Style Hero Billboard Preview Player -->
 <div id="hero-container">
@@ -405,12 +427,12 @@
   </div>
 </div>
 
-<!-- Custom D.A.P Player Shell Modal -->
+<!-- Custom D.A.P Theater Player Modal -->
 <div id="full-player-modal">
   <div id="full-player-header">
     <div class="dap-player-brand">
       <div class="dap-live-dot"></div>
-      <span id="full-player-title">D.A.P TV STREAMING</span>
+      <span id="full-player-title">D.A.P THEATER</span>
     </div>
     <button class="close-modal-btn" onclick="closeFullFeature()">CLOSE ✕</button>
   </div>
@@ -636,7 +658,7 @@
     const modalTitle = document.getElementById('full-player-title');
     const modalIframe = document.getElementById('full-player-iframe');
 
-    modalTitle.innerText = "D.A.P TV: " + titleText;
+    modalTitle.innerText = "D.A.P THEATER: " + titleText;
     modalIframe.src = `https://www.dailymotion.com/embed/video/${videoId}?autoplay=1&mute=0&controls=1&queue-enable=0&sharing-enable=0&related-video=0`;
     modal.style.display = 'flex';
   }
