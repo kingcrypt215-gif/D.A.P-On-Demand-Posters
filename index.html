@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <title>D.A.P On-Demand</title>
   <style>
-    body { background: #000; color: #fff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 0; overflow-x: hidden; }
-    #brand { text-align: center; color: #FFD700; font-size: clamp(18px, 4vw, 24px); font-weight: bold; padding: 10px; letter-spacing: 1.5px; }
+    body { background: #000; color: #fff; font-family: sans-serif; margin: 0; overflow-x: hidden; }
+    #brand { text-align: center; color: #FFD700; font-size: clamp(18px, 4vw, 24px); font-weight: bold; padding: 10px; letter-spacing: 1px; }
     
     /* Netflix Style Billboard / Hero Preview Area */
     #hero-container {
@@ -308,12 +308,14 @@
     }
 
     #full-player-header {
-      background: linear-gradient(180deg, rgba(15,15,15,0.95) 0%, rgba(0,0,0,0) 100%);
+      background: linear-gradient(180deg, #111 0%, #080808 100%);
       height: 60px;
       padding: 0 24px;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      border-bottom: 3px solid #FFD700;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.8);
       z-index: 2147483647;
       box-sizing: border-box;
       position: relative;
@@ -330,7 +332,7 @@
     }
 
     .dap-live-dot {
-      width: 10px; height: 10px;
+      width: 12px; height: 12px;
       background: #FFD700;
       border-radius: 50%;
       box-shadow: 0 0 10px #FFD700;
@@ -360,11 +362,11 @@
 
     #full-player-title {
       color: #FFD700;
-      font-weight: 700;
-      font-size: clamp(14px, 2.5vw, 17px);
-      letter-spacing: 1.2px;
+      font-weight: bold;
+      font-size: clamp(14px, 3vw, 18px);
+      letter-spacing: 1px;
       text-transform: uppercase;
-      text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+      text-shadow: 0 2px 4px rgba(0,0,0,0.5);
       display: inline-block;
       padding-right: 50px;
     }
@@ -377,34 +379,32 @@
     .player-btn-group { display: flex; gap: 10px; flex-shrink: 0; }
 
     .fs-toggle-btn {
-      background: rgba(20, 20, 20, 0.8);
+      background: #111;
       color: #FFD700;
-      border: 1px solid rgba(255, 215, 0, 0.6);
-      padding: 7px 14px;
-      font-weight: 700;
-      border-radius: 20px;
+      border: 1px solid #FFD700;
+      padding: 8px 14px;
+      font-weight: bold;
+      border-radius: 4px;
       cursor: pointer;
-      font-size: 12px;
-      letter-spacing: 0.5px;
-      backdrop-filter: blur(4px);
-      transition: all 0.2s ease;
+      font-size: 13px;
+      transition: background 0.2s, color 0.2s;
     }
-    .fs-toggle-btn:hover, .fs-toggle-btn:focus { background: #FFD700; color: #000; outline: none; transform: scale(1.03); }
+    .fs-toggle-btn:hover, .fs-toggle-btn:focus { background: #FFD700; color: #000; outline: 2px solid #fff; }
 
     .close-modal-btn {
       background: #FFD700;
       color: #000;
       border: none;
-      padding: 7px 16px;
-      font-weight: 700;
-      border-radius: 20px;
+      padding: 8px 16px;
+      font-weight: bold;
+      border-radius: 4px;
       cursor: pointer;
-      font-size: 12px;
+      font-size: 13px;
       letter-spacing: 0.5px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.5);
-      transition: all 0.2s ease;
+      transition: background 0.2s, transform 0.1s;
     }
-    .close-modal-btn:hover, .close-modal-btn:focus { background: #fff; transform: scale(1.03); outline: none; }
+    .close-modal-btn:hover, .close-modal-btn:focus { background: #fff; transform: scale(1.02); outline: 2px solid #FFD700; }
 
     #full-player-body {
       position: relative;
@@ -417,13 +417,13 @@
 
     #fs-permanent-branding {
       position: absolute;
-      top: 20px; left: 24px;
+      top: 15px; left: 20px;
       z-index: 2147483647;
       color: #FFD700;
-      font-weight: 800;
-      font-size: clamp(12px, 2vw, 15px);
-      letter-spacing: 1.5px;
-      text-shadow: 2px 2px 8px #000;
+      font-weight: bold;
+      font-size: clamp(12px, 2.5vw, 16px);
+      letter-spacing: 1px;
+      text-shadow: 2px 2px 6px #000, 0 0 4px #000;
       display: none;
       pointer-events: none;
     }
@@ -449,26 +449,28 @@
       pointer-events: none;
     }
 
-    /* Minimalist Floating D.A.P Control Bar */
+    /* Universal Transient Control Bar Layer Overlay */
     .fs-transient-controls {
       position: absolute;
-      bottom: max(25px, env(safe-area-inset-bottom));
+      bottom: max(15px, env(safe-area-inset-bottom));
       left: 50%;
       transform: translateX(-50%);
       z-index: 2147483647;
       display: flex;
-      gap: 12px;
+      gap: clamp(6px, 1.2vw, 12px);
       align-items: center;
-      background: rgba(10, 10, 10, 0.88);
-      padding: 10px 18px;
-      border-radius: 30px;
-      border: 1px solid rgba(255, 215, 0, 0.8);
-      box-shadow: 0 8px 32px rgba(0,0,0,0.9);
-      backdrop-filter: blur(10px);
+      background: rgba(10, 10, 10, 0.94);
+      padding: clamp(8px, 1.5vw, 14px) clamp(12px, 2vw, 22px);
+      border-radius: 8px;
+      border: 2px solid #FFD700;
+      box-shadow: 0 4px 25px rgba(0,0,0,0.95);
       opacity: 0;
       visibility: hidden;
-      transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.2s ease;
+      transition: opacity 0.4s ease-in-out, visibility 0.4s ease-in-out;
+      width: min(94vw, 950px);
       box-sizing: border-box;
+      flex-wrap: wrap;
+      justify-content: center;
     }
 
     :fullscreen #full-player-modal.active-user .fs-transient-controls,
@@ -479,41 +481,73 @@
     }
 
     .fs-gold-btn {
-      background: rgba(255, 215, 0, 0.12);
-      color: #FFD700;
-      border: 1px solid #FFD700;
-      padding: 8px 16px;
-      cursor: pointer;
-      font-weight: 700;
-      border-radius: 20px;
-      font-size: 13px;
-      letter-spacing: 0.5px;
-      transition: all 0.2s ease;
-      white-space: nowrap;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-    }
-
-    .fs-gold-btn:hover, .fs-gold-btn:focus {
-      background: #FFD700;
-      color: #000;
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(255, 215, 0, 0.4);
-      outline: none;
-    }
-
-    .fs-exit-btn {
       background: #FFD700;
       color: #000;
       border: none;
+      padding: clamp(8px, 1.2vw, 11px) clamp(10px, 1.8vw, 16px);
+      cursor: pointer;
+      font-weight: bold;
+      border-radius: 4px;
+      font-size: clamp(11px, 1.5vw, 14px);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.8);
+      transition: background 0.2s, transform 0.1s, outline 0.1s;
+      white-space: nowrap;
+      min-height: 38px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
     }
-    .fs-exit-btn:hover, .fs-exit-btn:focus {
+    .fs-gold-btn:hover, .fs-gold-btn:focus {
       background: #fff;
-      color: #000;
-      box-shadow: 0 4px 12px rgba(255, 255, 255, 0.4);
+      transform: scale(1.03);
+      outline: 2px solid #FFD700;
     }
+
+    .fs-seeker-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1 1 200px;
+      min-width: 180px;
+    }
+
+    .fs-seek-slider {
+      flex-grow: 1;
+      height: 8px;
+      accent-color: #FFD700;
+      cursor: pointer;
+      border-radius: 4px;
+      touch-action: none;
+    }
+    .fs-seek-slider:focus { outline: 2px solid #FFD700; }
+
+    .fs-time-counter {
+      color: #FFD700;
+      font-size: clamp(11px, 1.4vw, 13px);
+      font-weight: bold;
+      font-family: monospace;
+      white-space: nowrap;
+      min-width: 85px;
+      text-align: center;
+    }
+
+    .fs-volume-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #FFD700;
+      font-size: clamp(11px, 1.4vw, 13px);
+      font-weight: bold;
+    }
+
+    .fs-volume-slider {
+      width: clamp(50px, 8vw, 80px);
+      height: 6px;
+      accent-color: #FFD700;
+      cursor: pointer;
+      touch-action: none;
+    }
+    .fs-volume-slider:focus { outline: 1px solid #FFD700; }
 
     #full-player-iframe {
       position: absolute;
@@ -523,6 +557,21 @@
       background: #000;
       pointer-events: auto;
       z-index: 2147483644;
+    }
+
+    @media (max-width: 600px) {
+      .fs-transient-controls {
+        flex-direction: row;
+        width: 96vw;
+        padding: 8px;
+        gap: 6px;
+      }
+      .fs-seeker-wrap {
+        order: -1;
+        width: 100%;
+        flex: 1 1 100%;
+      }
+      .fs-volume-wrap { display: none; }
     }
 
     :fullscreen #full-player-header,
@@ -609,14 +658,28 @@
   <div id="full-player-body">
     <div id="fs-permanent-branding">D.A.P ON-DEMAND</div>
     <div id="click-shield"></div>
-    
-    <!-- Minimalist Floating Control Bar -->
     <div class="fs-transient-controls">
-      <button class="fs-gold-btn" onclick="changeChannel(-1)" title="Previous Channel">⏮ PREV CH</button>
-      <button class="fs-gold-btn" onclick="changeChannel(1)" title="Next Channel">NEXT CH ⏭</button>
-      <button class="fs-gold-btn fs-exit-btn" onclick="toggleFullScreen()" title="Exit Fullscreen">⛶ EXIT</button>
+      <!-- Channel Switchers & Play/Pause -->
+      <button class="fs-gold-btn" onclick="changeChannel(-1)" title="Previous Title">⏮ PREV</button>
+      <button class="fs-gold-btn" onclick="skipTime(-10)" title="Rewind 10s">⏮ -10s</button>
+      <button class="fs-gold-btn" id="fs-play-pause-btn" onclick="togglePlayPause()">⏸ PAUSE</button>
+      <button class="fs-gold-btn" onclick="skipTime(10)" title="Forward 10s">+10s ⏭</button>
+      <button class="fs-gold-btn" onclick="changeChannel(1)" title="Next Title">NEXT ⏭</button>
+
+      <!-- Track Seeker & Counter -->
+      <div class="fs-seeker-wrap">
+        <input type="range" class="fs-seek-slider" id="fs-seek-slider" min="0" max="100" value="0" step="0.1" oninput="onSeekInput(this.value)" onchange="onSeekChange(this.value)" aria-label="Video Seeker Slider">
+        <span class="fs-time-counter" id="fs-time-counter">00:00 / 00:00</span>
+      </div>
+
+      <!-- Volume & Mute / Exit Fullscreen Controls -->
+      <button class="fs-gold-btn" id="fs-mute-btn" onclick="togglePlayerMute()" title="Mute/Unmute">🔊 UNMUTE</button>
+      <div class="fs-volume-wrap">
+        <span>VOL:</span>
+        <input type="range" class="fs-volume-slider" id="fs-volume-slider" min="0" max="100" value="100" oninput="adjustVolume(this.value)" title="Volume Slider">
+      </div>
+      <button class="fs-gold-btn" onclick="toggleFullScreen()">⛶ EXIT FULLSCREEN</button>
     </div>
-    
     <iframe id="full-player-iframe" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
   </div>
 </div>
@@ -726,7 +789,12 @@
   });
 
   let currentSelectedMovie = allMovies[0];
+  let isPlaying = true;
   let isHeroMuted = true;
+  let isPlayerMuted = false;
+  let videoCurrentTime = 0;
+  let videoDuration = 0;
+  let isUserSeeking = false;
 
   function renderCategories() {
     const container = document.getElementById('categories-container');
@@ -859,9 +927,17 @@
     const fullText = `D.A.P ON-DEMAND: ${titleText}   &bull;   `;
     titleElem.innerHTML = fullText + fullText;
 
-    iframe.src = `https://www.dailymotion.com/embed/video/${videoId}?autoplay=1&mute=0&controls=1&queue-enable=0&sharing-enable=0&related-video=0`;
+    videoCurrentTime = 0;
+    videoDuration = 0;
+    updateSeekUI();
+
+    /* Crucial: api=postMessage enables cross-domain JS postMessage controls */
+    iframe.src = `https://www.dailymotion.com/embed/video/${videoId}?autoplay=1&mute=0&controls=1&api=postMessage&queue-enable=0&sharing-enable=0&related-video=0`;
     modal.style.display = 'flex';
     modal.focus();
+
+    isPlaying = true;
+    document.getElementById('fs-play-pause-btn').innerText = "⏸ PAUSE";
   }
 
   function closeFullFeature() {
@@ -879,6 +955,17 @@
     modal.classList.remove('active-user');
   }
 
+  function sendIframeCommand(cmd, arg) {
+    const iframe = document.getElementById('full-player-iframe');
+    if (!iframe || !iframe.contentWindow) return;
+    
+    let msg = cmd;
+    if (arg !== undefined) {
+      msg += ':' + arg;
+    }
+    iframe.contentWindow.postMessage(msg, '*');
+  }
+
   function toggleFullScreen() {
     const modal = document.getElementById('full-player-modal');
     if (!document.fullscreenElement && !document.webkitFullscreenElement) {
@@ -888,6 +975,35 @@
       if (document.exitFullscreen) { document.exitFullscreen(); }
       else if (document.webkitExitFullscreen) { document.webkitExitFullscreen(); }
     }
+  }
+
+  function togglePlayPause() {
+    const btn = document.getElementById('fs-play-pause-btn');
+    isPlaying = !isPlaying;
+    if (isPlaying) {
+      btn.innerText = "⏸ PAUSE";
+      sendIframeCommand('play');
+    } else {
+      btn.innerText = "▶ PLAY";
+      sendIframeCommand('pause');
+    }
+  }
+
+  function togglePlayerMute() {
+    const btn = document.getElementById('fs-mute-btn');
+    isPlayerMuted = !isPlayerMuted;
+    if (isPlayerMuted) {
+      btn.innerText = "🔇 MUTE";
+      sendIframeCommand('muted', 1);
+    } else {
+      btn.innerText = "🔊 UNMUTE";
+      sendIframeCommand('muted', 0);
+    }
+  }
+
+  function adjustVolume(val) {
+    let vol = val / 100;
+    sendIframeCommand('volume', vol);
   }
 
   function changeChannel(direction) {
@@ -901,6 +1017,86 @@
     currentSelectedMovie = activeMovies[nextIdx];
     playVideoId(currentSelectedMovie.id, currentSelectedMovie.name);
   }
+
+  /* Seek & Timeline Control Functions */
+  function formatTime(seconds) {
+    if (isNaN(seconds) || seconds <= 0) return "00:00";
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = Math.floor(seconds % 60);
+    const pad = num => String(num).padStart(2, '0');
+    return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
+  }
+
+  function updateSeekUI() {
+    if (isUserSeeking) return;
+    const seekSlider = document.getElementById('fs-seek-slider');
+    const timeDisplay = document.getElementById('fs-time-counter');
+    
+    if (videoDuration > 0) {
+      seekSlider.max = videoDuration;
+      seekSlider.value = videoCurrentTime;
+    } else {
+      seekSlider.value = 0;
+    }
+    
+    timeDisplay.innerText = `${formatTime(videoCurrentTime)} / ${formatTime(videoDuration)}`;
+  }
+
+  function seekTo(val) {
+    videoCurrentTime = parseFloat(val);
+    sendIframeCommand('seek', videoCurrentTime);
+    updateSeekUI();
+  }
+
+  function skipTime(seconds) {
+    let target = Math.max(0, videoCurrentTime + seconds);
+    if (videoDuration > 0) target = Math.min(videoDuration, target);
+    seekTo(target);
+  }
+
+  function onSeekInput(val) {
+    isUserSeeking = true;
+    const timeDisplay = document.getElementById('fs-time-counter');
+    timeDisplay.innerText = `${formatTime(val)} / ${formatTime(videoDuration)}`;
+  }
+
+  function onSeekChange(val) {
+    isUserSeeking = false;
+    seekTo(val);
+  }
+
+  /* Direct Dailymotion postMessage Event Listener */
+  window.addEventListener('message', function(event) {
+    try {
+      if (typeof event.data === 'string') {
+        const params = new URLSearchParams(event.data);
+        const eventName = params.get('event');
+
+        if (eventName === 'timeupdate') {
+          const t = parseFloat(params.get('time'));
+          if (!isNaN(t)) {
+            videoCurrentTime = t;
+            updateSeekUI();
+          }
+        } else if (eventName === 'durationchange') {
+          const d = parseFloat(params.get('duration'));
+          if (!isNaN(d) && d > 0) {
+            videoDuration = d;
+            updateSeekUI();
+          }
+        } else if (eventName === 'play') {
+          isPlaying = true;
+          document.getElementById('fs-play-pause-btn').innerText = "⏸ PAUSE";
+        } else if (eventName === 'pause') {
+          isPlaying = false;
+          document.getElementById('fs-play-pause-btn').innerText = "▶ PLAY";
+        }
+      }
+    } catch (e) {
+      /* Safe catch for irrelevant origin messages */
+    }
+  });
 
   let fadeTimer = null;
   function triggerActivity() {
@@ -917,15 +1113,17 @@
   clickShield.addEventListener('mousedown', triggerActivity);
   clickShield.addEventListener('touchstart', triggerActivity, { passive: true });
   
-  /* Keyboard & Remote Key Listener for Screen Management */
+  /* Keyboard & Remote Key Listener */
   document.addEventListener('keydown', function(e) {
     triggerActivity();
     const modal = document.getElementById('full-player-modal');
     if (modal.style.display === 'flex') {
-      if (e.key === 'f' || e.key === 'F') { e.preventDefault(); toggleFullScreen(); }
+      if (e.key === ' ' || e.key === 'k') { e.preventDefault(); togglePlayPause(); }
+      else if (e.key === 'ArrowLeft') { e.preventDefault(); skipTime(-10); }
+      else if (e.key === 'ArrowRight') { e.preventDefault(); skipTime(10); }
+      else if (e.key === 'f' || e.key === 'F') { e.preventDefault(); toggleFullScreen(); }
+      else if (e.key === 'm' || e.key === 'M') { e.preventDefault(); togglePlayerMute(); }
       else if (e.key === 'Escape') { closeFullFeature(); }
-      else if (e.key === 'ArrowLeft') { e.preventDefault(); changeChannel(-1); }
-      else if (e.key === 'ArrowRight') { e.preventDefault(); changeChannel(1); }
     }
   });
 
