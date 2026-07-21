@@ -793,9 +793,8 @@
   let isHeroMuted = true;
   let isPlayerMuted = false;
   let videoCurrentTime = 0;
-  let videoDuration = 1800; // Estimated 30m default until reported by player
+  let videoDuration = 0;
   let isUserSeeking = false;
-  let seekTimerInterval = null;
 
   function renderCategories() {
     const container = document.getElementById('categories-container');
@@ -929,35 +928,22 @@
     titleElem.innerHTML = fullText + fullText;
 
     videoCurrentTime = 0;
+    videoDuration = 0;
     updateSeekUI();
 
-    iframe.src = `https://www.dailymotion.com/embed/video/${videoId}?autoplay=1&mute=0&controls=1&queue-enable=0&sharing-enable=0&related-video=0`;
+    /* Crucial: api=postMessage enables cross-domain JS postMessage controls */
+    iframe.src = `https://www.dailymotion.com/embed/video/${videoId}?autoplay=1&mute=0&controls=1&api=postMessage&queue-enable=0&sharing-enable=0&related-video=0`;
     modal.style.display = 'flex';
     modal.focus();
 
     isPlaying = true;
     document.getElementById('fs-play-pause-btn').innerText = "⏸ PAUSE";
-    startPlaybackTimer();
-  }
-
-  function startPlaybackTimer() {
-    clearInterval(seekTimerInterval);
-    seekTimerInterval = setInterval(() => {
-      if (isPlaying && !isUserSeeking) {
-        videoCurrentTime += 1;
-        if (videoDuration > 0 && videoCurrentTime > videoDuration) {
-          videoCurrentTime = videoDuration;
-        }
-        updateSeekUI();
-      }
-    }, 1000);
   }
 
   function closeFullFeature() {
     const modal = document.getElementById('full-player-modal');
     const iframe = document.getElementById('full-player-iframe');
     
-    clearInterval(seekTimerInterval);
     iframe.src = "";
 
     if (document.fullscreenElement || document.webkitFullscreenElement) {
@@ -967,6 +953,17 @@
 
     modal.style.display = 'none';
     modal.classList.remove('active-user');
+  }
+
+  function sendIframeCommand(cmd, arg) {
+    const iframe = document.getElementById('full-player-iframe');
+    if (!iframe || !iframe.contentWindow) return;
+    
+    let msg = cmd;
+    if (arg !== undefined) {
+      msg += ':' + arg;
+    }
+    iframe.contentWindow.postMessage(msg, '*');
   }
 
   function toggleFullScreen() {
@@ -981,35 +978,32 @@
   }
 
   function togglePlayPause() {
-    const iframe = document.getElementById('full-player-iframe');
     const btn = document.getElementById('fs-play-pause-btn');
     isPlaying = !isPlaying;
     if (isPlaying) {
       btn.innerText = "⏸ PAUSE";
-      iframe.contentWindow.postMessage('{"command":"play"}', '*');
+      sendIframeCommand('play');
     } else {
       btn.innerText = "▶ PLAY";
-      iframe.contentWindow.postMessage('{"command":"pause"}', '*');
+      sendIframeCommand('pause');
     }
   }
 
   function togglePlayerMute() {
-    const iframe = document.getElementById('full-player-iframe');
     const btn = document.getElementById('fs-mute-btn');
     isPlayerMuted = !isPlayerMuted;
     if (isPlayerMuted) {
       btn.innerText = "🔇 MUTE";
-      iframe.contentWindow.postMessage('{"command":"mute"}', '*');
+      sendIframeCommand('muted', 1);
     } else {
       btn.innerText = "🔊 UNMUTE";
-      iframe.contentWindow.postMessage('{"command":"unmute"}', '*');
+      sendIframeCommand('muted', 0);
     }
   }
 
   function adjustVolume(val) {
-    const iframe = document.getElementById('full-player-iframe');
     let vol = val / 100;
-    iframe.contentWindow.postMessage(JSON.stringify({command: 'volume', value: vol}), '*');
+    sendIframeCommand('volume', vol);
   }
 
   function changeChannel(direction) {
@@ -1050,9 +1044,8 @@
   }
 
   function seekTo(val) {
-    const iframe = document.getElementById('full-player-iframe');
     videoCurrentTime = parseFloat(val);
-    iframe.contentWindow.postMessage(JSON.stringify({ command: 'seek', value: videoCurrentTime }), '*');
+    sendIframeCommand('seek', videoCurrentTime);
     updateSeekUI();
   }
 
@@ -1073,17 +1066,35 @@
     seekTo(val);
   }
 
-  /* Listen to incoming frame events for duration/time if available */
+  /* Direct Dailymotion postMessage Event Listener */
   window.addEventListener('message', function(event) {
     try {
-      const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
-      if (data) {
-        if (data.time !== undefined) videoCurrentTime = data.time;
-        if (data.duration !== undefined && data.duration > 0) videoDuration = data.duration;
-        updateSeekUI();
+      if (typeof event.data === 'string') {
+        const params = new URLSearchParams(event.data);
+        const eventName = params.get('event');
+
+        if (eventName === 'timeupdate') {
+          const t = parseFloat(params.get('time'));
+          if (!isNaN(t)) {
+            videoCurrentTime = t;
+            updateSeekUI();
+          }
+        } else if (eventName === 'durationchange') {
+          const d = parseFloat(params.get('duration'));
+          if (!isNaN(d) && d > 0) {
+            videoDuration = d;
+            updateSeekUI();
+          }
+        } else if (eventName === 'play') {
+          isPlaying = true;
+          document.getElementById('fs-play-pause-btn').innerText = "⏸ PAUSE";
+        } else if (eventName === 'pause') {
+          isPlaying = false;
+          document.getElementById('fs-play-pause-btn').innerText = "▶ PLAY";
+        }
       }
     } catch (e) {
-      /* Ignore non-JSON post messages */
+      /* Safe catch for irrelevant origin messages */
     }
   });
 
