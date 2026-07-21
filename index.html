@@ -290,8 +290,8 @@
       border-color: #FFD700;
     }
 
-    /* Custom D.A.P On-Demand Fullscreen Theater Player Modal */
-    #full-player-wrapper {
+    /* Custom D.A.P On-Demand Fullscreen Player Overlay with Continuous Title Marquee */
+    #full-player-modal {
       position: fixed;
       top: 0; left: 0; width: 100vw; height: 100vh;
       background: #000;
@@ -384,46 +384,8 @@
       box-shadow: 0 2px 8px rgba(0,0,0,0.5);
       transition: background 0.2s, transform 0.1s;
       flex-shrink: 0;
-      z-index: 2147483647;
     }
     .close-modal-btn:hover { background: #fff; transform: scale(1.02); }
-
-    /* Permanent top-left watermark branding when in native fullscreen */
-    #fs-permanent-branding {
-      position: absolute;
-      top: 15px;
-      left: 20px;
-      z-index: 2147483647;
-      color: #FFD700;
-      font-weight: bold;
-      font-size: 14px;
-      letter-spacing: 1px;
-      text-shadow: 2px 2px 6px #000, 0 0 4px #000;
-      display: none;
-      pointer-events: none;
-    }
-    :fullscreen #fs-permanent-branding,
-    :-webkit-full-screen #fs-permanent-branding {
-      display: block;
-    }
-
-    /* Transient Controls overlay matching your master 24/7 architecture */
-    .fs-nav { 
-        position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); 
-        z-index: 2147483647; display: flex; gap: 10px; align-items: center;
-        opacity: 0; visibility: hidden; transition: opacity 0.4s ease-in-out, visibility 0.4s ease-in-out; 
-    }
-    #full-player-wrapper.active-user .fs-nav { opacity: 1; visibility: visible; }
-    
-    .fs-btn { background: #FFD700 !important; color: #000 !important; border: none; padding: 8px 14px; cursor: pointer; font-weight: bold; border-radius: 4px; font-size: clamp(10px, 1.8vw, 14px); box-shadow: 0 2px 8px rgba(0,0,0,0.8); }
-    .fs-btn:hover { background: #fff !important; }
-
-    /* Invisible Shield Overlay */
-    #click-shield {
-      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-      z-index: 2147483645; background: transparent; display: block;
-    }
-    #full-player-wrapper.active-user #click-shield { pointer-events: none; }
 
     #full-player-body {
       position: relative;
@@ -440,8 +402,8 @@
       height: 100%;
       border: none;
       background: #000;
-      z-index: 2147483644;
       pointer-events: auto;
+      z-index: 2147483646;
     }
 
     @keyframes fadeIn {
@@ -497,7 +459,7 @@
 </div>
 
 <!-- Custom D.A.P On-Demand Fullscreen Theater Player Modal -->
-<div id="full-player-wrapper">
+<div id="full-player-modal">
   <div id="full-player-header">
     <div class="dap-player-brand">
       <div class="dap-live-dot"></div>
@@ -510,12 +472,6 @@
     <button class="close-modal-btn" onclick="closeFullFeature()">CLOSE ✕</button>
   </div>
   <div id="full-player-body">
-    <div id="fs-permanent-branding">D.A.P ON-DEMAND</div>
-    <div id="click-shield"></div>
-    <div class="fs-nav">
-        <button class="fs-btn" onclick="toggleFullScreen()">FULLSCREEN</button>
-        <button class="fs-btn" onclick="closeFullFeature()">EXIT</button>
-    </div>
     <iframe id="full-player-iframe" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
   </div>
 </div>
@@ -733,72 +689,25 @@
   }
 
   function playVideoId(videoId, titleText) {
-    const wrapper = document.getElementById('full-player-wrapper');
+    const modal = document.getElementById('full-player-modal');
     const titleElem = document.getElementById('full-player-title');
     const modalIframe = document.getElementById('full-player-iframe');
 
+    // Duplicate text so the marquee loops seamlessly without jumping
     const fullText = `D.A.P ON-DEMAND: ${titleText}   &bull;   `;
     titleElem.innerHTML = fullText + fullText;
 
     modalIframe.src = `https://www.dailymotion.com/embed/video/${videoId}?autoplay=1&mute=0&controls=1&queue-enable=0&sharing-enable=0&related-video=0`;
-    wrapper.style.display = 'flex';
+    modal.style.display = 'flex';
   }
 
   function closeFullFeature() {
-    const wrapper = document.getElementById('full-player-wrapper');
+    const modal = document.getElementById('full-player-modal');
     const modalIframe = document.getElementById('full-player-iframe');
     
-    if (document.fullscreenElement || document.webkitFullscreenElement) {
-      if (document.exitFullscreen) { document.exitFullscreen(); }
-      else if (document.webkitExitFullscreen) { document.webkitExitFullscreen(); }
-    }
-
     modalIframe.src = "";
-    wrapper.style.display = 'none';
-    wrapper.classList.remove('active-user');
+    modal.style.display = 'none';
   }
-
-  function toggleFullScreen() {
-    const wrapper = document.getElementById('full-player-wrapper');
-    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
-      if (wrapper.requestFullscreen) { wrapper.requestFullscreen(); }
-      else if (wrapper.webkitRequestFullscreen) { wrapper.webkitRequestFullscreen(); }
-    } else {
-      if (document.exitFullscreen) { document.exitFullscreen(); }
-      else if (document.webkitExitFullscreen) { document.webkitExitFullscreen(); }
-    }
-  }
-
-  let fadeTimer = null;
-  function triggerActivity() {
-    const wrapper = document.getElementById('full-player-wrapper');
-    if (document.fullscreenElement || document.webkitFullscreenElement) {
-      wrapper.classList.add('active-user');
-      clearTimeout(fadeTimer);
-      fadeTimer = setTimeout(() => {
-        wrapper.classList.remove('active-user');
-      }, 3000);
-    }
-  }
-
-  const wrapperElem = document.getElementById('full-player-wrapper');
-  wrapperElem.addEventListener('mousemove', triggerActivity);
-  wrapperElem.addEventListener('mousedown', triggerActivity);
-  wrapperElem.addEventListener('touchstart', triggerActivity, { passive: true });
-
-  function checkFullscreen() {
-    const wrapper = document.getElementById('full-player-wrapper');
-    if (document.fullscreenElement || document.webkitFullscreenElement) {
-      wrapper.classList.add('fullscreen-mode');
-      triggerActivity();
-    } else {
-      wrapper.classList.remove('fullscreen-mode');
-      wrapper.classList.remove('active-user');
-    }
-  }
-
-  document.addEventListener('fullscreenchange', checkFullscreen);
-  document.addEventListener('webkitfullscreenchange', checkFullscreen);
 
   function toggleHeroInfo() {
     openDetailsModal(currentSelectedMovie);
@@ -809,3 +718,4 @@
 </script>
 </body>
 </html>
+
