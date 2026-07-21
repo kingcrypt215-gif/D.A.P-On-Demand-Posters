@@ -23,7 +23,7 @@
       top: 0; left: 0;
       width: 100%; height: 100%;
       border: none;
-      pointer-events: auto; /* Allows clicking unmute inside player */
+      pointer-events: auto;
     }
 
     .hero-vignette {
@@ -40,11 +40,11 @@
       left: 25px;
       z-index: 3;
       max-width: 600px;
-      pointer-events: none; /* Let clicks pass through empty spaces to iframe */
+      pointer-events: none;
     }
 
     #hero-content * {
-      pointer-events: auto; /* Keep buttons clickable */
+      pointer-events: auto;
     }
 
     #hero-title {
@@ -101,7 +101,6 @@
     }
     .netflix-btn-info:hover { background: rgba(109, 109, 110, 0.9); }
 
-    /* Dedicated Gold Unmute Toggle Button on Hero Preview */
     .hero-unmute-btn {
       position: absolute;
       bottom: 25px;
@@ -152,13 +151,8 @@
       scrollbar-color: #FFD700 #141414;
     }
 
-    .poster-row::-webkit-scrollbar {
-      height: 6px;
-    }
-    .poster-row::-webkit-scrollbar-thumb {
-      background: #FFD700;
-      border-radius: 3px;
-    }
+    .poster-row::-webkit-scrollbar { height: 6px; }
+    .poster-row::-webkit-scrollbar-thumb { background: #FFD700; border-radius: 3px; }
 
     .poster-card {
       background: #141414;
@@ -239,9 +233,7 @@
       background: #111;
     }
 
-    .details-text-area {
-      padding: 20px;
-    }
+    .details-text-area { padding: 20px; }
 
     #details-modal-title {
       color: #FFD700;
@@ -257,10 +249,7 @@
       margin: 0 0 20px 0;
     }
 
-    .details-btn-row {
-      display: flex;
-      gap: 12px;
-    }
+    .details-btn-row { display: flex; gap: 12px; }
 
     .watch-now-btn {
       background: #FFD700;
@@ -288,17 +277,8 @@
     }
     .close-details-btn:hover { background: #FFD700; color: #000; }
 
-    /* Episode Selector inside Details Modal for Series */
-    #details-episode-container {
-      margin-top: 10px;
-      display: none;
-    }
-
-    #details-episode-container h4 {
-      color: #FFD700;
-      margin: 0 0 8px 0;
-      font-size: 14px;
-    }
+    #details-episode-container { margin-top: 10px; display: none; }
+    #details-episode-container h4 { color: #FFD700; margin: 0 0 8px 0; font-size: 14px; }
 
     .details-ep-btn {
       display: block;
@@ -313,13 +293,9 @@
       cursor: pointer;
       text-align: left;
     }
-    .details-ep-btn:hover {
-      background: #FFD700;
-      color: #000;
-      border-color: #FFD700;
-    }
+    .details-ep-btn:hover { background: #FFD700; color: #000; border-color: #FFD700; }
 
-    /* Custom D.A.P On-Demand Fullscreen Theater Player Modal */
+    /* Custom D.A.P On-Demand Fullscreen Container Wrapper */
     #full-player-modal {
       position: fixed;
       top: 0; left: 0; width: 100vw; height: 100vh;
@@ -356,8 +332,7 @@
     }
 
     .dap-live-dot {
-      width: 12px;
-      height: 12px;
+      width: 12px; height: 12px;
       background: #FFD700;
       border-radius: 50%;
       box-shadow: 0 0 10px #FFD700;
@@ -371,7 +346,6 @@
       100% { opacity: 0.6; transform: scale(0.95); }
     }
 
-    /* Marquee Container for Full Title Display */
     .title-marquee-container {
       overflow: hidden;
       white-space: nowrap;
@@ -402,11 +376,7 @@
       100% { transform: translateX(-50%); }
     }
 
-    .player-btn-group {
-      display: flex;
-      gap: 10px;
-      flex-shrink: 0;
-    }
+    .player-btn-group { display: flex; gap: 10px; flex-shrink: 0; }
 
     .fs-toggle-btn {
       background: #111;
@@ -445,11 +415,9 @@
       transition: height 0.4s ease-in-out;
     }
 
-    /* Permanent top-left watermark badge visible only in native fullscreen mode */
     #fs-permanent-branding {
       position: absolute;
-      top: 15px;
-      left: 20px;
+      top: 15px; left: 20px;
       z-index: 2147483647;
       color: #FFD700;
       font-weight: bold;
@@ -464,7 +432,6 @@
       display: block;
     }
 
-    /* Transparent Click-Catcher Shield Overlay */
     #click-shield {
       position: absolute;
       top: 0; left: 0;
@@ -482,7 +449,7 @@
       pointer-events: none;
     }
 
-    /* Universal Fully Adaptive Fullscreen Controls Bar */
+    /* Universal Transient Control Bar Layer Overlay */
     .fs-transient-controls {
       position: absolute;
       bottom: max(15px, env(safe-area-inset-bottom));
@@ -490,7 +457,7 @@
       transform: translateX(-50%);
       z-index: 2147483647;
       display: flex;
-      gap: clamp(6px, 1.5vw, 12px);
+      gap: clamp(6px, 1.2vw, 12px);
       align-items: center;
       background: rgba(10, 10, 10, 0.94);
       padding: clamp(8px, 1.5vw, 14px) clamp(12px, 2vw, 22px);
@@ -500,14 +467,15 @@
       opacity: 0;
       visibility: hidden;
       transition: opacity 0.4s ease-in-out, visibility 0.4s ease-in-out;
-      width: min(94vw, 900px);
+      width: min(94vw, 950px);
       box-sizing: border-box;
       flex-wrap: wrap;
       justify-content: center;
     }
 
     :fullscreen #full-player-modal.active-user .fs-transient-controls,
-    :-webkit-full-screen #full-player-modal.active-user .fs-transient-controls {
+    :-webkit-full-screen #full-player-modal.active-user .fs-transient-controls,
+    #full-player-modal.active-user .fs-transient-controls {
       opacity: 1;
       visibility: visible;
     }
@@ -535,7 +503,6 @@
       outline: 2px solid #FFD700;
     }
 
-    /* Track Seeker Timeline & Counter Styling */
     .fs-seeker-wrap {
       display: flex;
       align-items: center;
@@ -552,9 +519,7 @@
       border-radius: 4px;
       touch-action: none;
     }
-    .fs-seek-slider:focus {
-      outline: 2px solid #FFD700;
-    }
+    .fs-seek-slider:focus { outline: 2px solid #FFD700; }
 
     .fs-time-counter {
       color: #FFD700;
@@ -582,11 +547,8 @@
       cursor: pointer;
       touch-action: none;
     }
-    .fs-volume-slider:focus {
-      outline: 1px solid #FFD700;
-    }
+    .fs-volume-slider:focus { outline: 1px solid #FFD700; }
 
-    /* Screen Adjustments for Mobile & Smart TVs */
     @media (max-width: 600px) {
       .fs-transient-controls {
         flex-direction: row;
@@ -599,12 +561,9 @@
         width: 100%;
         flex: 1 1 100%;
       }
-      .fs-volume-wrap {
-        display: none; /* Auto-collapse slider on small screens for touch ergonomics */
-      }
+      .fs-volume-wrap { display: none; }
     }
 
-    /* Auto-hide header in native fullscreen unless active user */
     :fullscreen #full-player-header,
     :-webkit-full-screen #full-player-header {
       opacity: 0;
@@ -617,15 +576,12 @@
     }
 
     :fullscreen #full-player-body,
-    :-webkit-full-screen #full-player-body {
-      height: 100vh;
-    }
+    :-webkit-full-screen #full-player-body { height: 100vh; }
 
     #full-player-iframe {
       position: absolute;
       top: 0; left: 0;
-      width: 100%;
-      height: 100%;
+      width: 100%; height: 100%;
       border: none;
       background: #000;
       pointer-events: auto;
@@ -659,9 +615,7 @@
 
 <!-- On-Demand Horizontal Category Rows Section -->
 <div id="vod-catalog-section">
-  <div id="categories-container">
-    <!-- Populated dynamically via JS -->
-  </div>
+  <div id="categories-container"></div>
 </div>
 
 <!-- Details / Pre-Play Modal -->
@@ -705,10 +659,12 @@
     <div id="fs-permanent-branding">D.A.P ON-DEMAND</div>
     <div id="click-shield"></div>
     <div class="fs-transient-controls">
-      <!-- Transit Navigation Buttons -->
-      <button class="fs-gold-btn" onclick="skipTime(-10)" title="Rewind 10s" aria-label="Rewind 10 seconds">⏮ -10s</button>
-      <button class="fs-gold-btn" id="fs-play-pause-btn" onclick="togglePlayPause()" aria-label="Play Pause Toggle">⏸ PAUSE</button>
-      <button class="fs-gold-btn" onclick="skipTime(10)" title="Forward 10s" aria-label="Forward 10 seconds">+10s ⏭</button>
+      <!-- Channel Switchers & Play/Pause -->
+      <button class="fs-gold-btn" onclick="changeChannel(-1)" title="Previous Title">⏮ PREV</button>
+      <button class="fs-gold-btn" onclick="skipTime(-10)" title="Rewind 10s">⏮ -10s</button>
+      <button class="fs-gold-btn" id="fs-play-pause-btn" onclick="togglePlayPause()">⏸ PAUSE</button>
+      <button class="fs-gold-btn" onclick="skipTime(10)" title="Forward 10s">+10s ⏭</button>
+      <button class="fs-gold-btn" onclick="changeChannel(1)" title="Next Title">NEXT ⏭</button>
 
       <!-- Track Seeker & Counter -->
       <div class="fs-seeker-wrap">
@@ -716,12 +672,13 @@
         <span class="fs-time-counter" id="fs-time-counter">00:00 / 00:00</span>
       </div>
 
-      <!-- Volume & Screen Controls -->
+      <!-- Volume & Mute / Exit Fullscreen Controls -->
+      <button class="fs-gold-btn" id="fs-mute-btn" onclick="togglePlayerMute()" title="Mute/Unmute">🔊 UNMUTE</button>
       <div class="fs-volume-wrap">
         <span>VOL:</span>
-        <input type="range" class="fs-volume-slider" id="fs-volume-slider" min="0" max="100" value="100" oninput="adjustVolume(this.value)" title="Volume Slider" aria-label="Volume Control">
+        <input type="range" class="fs-volume-slider" id="fs-volume-slider" min="0" max="100" value="100" oninput="adjustVolume(this.value)" title="Volume Slider">
       </div>
-      <button class="fs-gold-btn" onclick="toggleFullScreen()" aria-label="Exit Fullscreen">⛶ EXIT FULLSCREEN</button>
+      <button class="fs-gold-btn" onclick="toggleFullScreen()">⛶ EXIT FULLSCREEN</button>
     </div>
     <iframe id="full-player-iframe" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
   </div>
@@ -831,9 +788,11 @@
     cat.titles.forEach(movie => allMovies.push(movie));
   });
 
+  let currentMovieIndex = 0;
   let currentSelectedMovie = allMovies[0];
   let isPlaying = true;
   let isHeroMuted = true;
+  let isPlayerMuted = false;
   let videoCurrentTime = 0;
   let videoDuration = 0;
   let isUserSeeking = false;
@@ -877,6 +836,7 @@
 
   function selectMovieForPreview(movie) {
     currentSelectedMovie = movie;
+    currentMovieIndex = allMovies.findIndex(m => m.name === movie.name);
     document.getElementById('hero-title').innerText = movie.name;
     document.getElementById('hero-desc').innerText = movie.desc;
 
@@ -903,11 +863,7 @@
   function toggleHeroMute() {
     isHeroMuted = !isHeroMuted;
     const btn = document.getElementById('hero-unmute-btn');
-    if (isHeroMuted) {
-      btn.innerText = "🔊 UNMUTE";
-    } else {
-      btn.innerText = "🔇 MUTE";
-    }
+    btn.innerText = isHeroMuted ? "🔊 UNMUTE" : "🔇 MUTE";
     updateHeroIframeSource();
   }
 
@@ -1022,10 +978,35 @@
     }
   }
 
+  function togglePlayerMute() {
+    const iframe = document.getElementById('full-player-iframe');
+    const btn = document.getElementById('fs-mute-btn');
+    isPlayerMuted = !isPlayerMuted;
+    if (isPlayerMuted) {
+      btn.innerText = "🔇 MUTE";
+      iframe.contentWindow.postMessage('{"command":"mute"}', '*');
+    } else {
+      btn.innerText = "🔊 UNMUTE";
+      iframe.contentWindow.postMessage('{"command":"unmute"}', '*');
+    }
+  }
+
   function adjustVolume(val) {
     const iframe = document.getElementById('full-player-iframe');
     let vol = val / 100;
     iframe.contentWindow.postMessage(JSON.stringify({command: 'volume', value: vol}), '*');
+  }
+
+  function changeChannel(direction) {
+    let activeMovies = allMovies.filter(m => m.active && m.id);
+    if (activeMovies.length === 0) return;
+
+    let activeIdx = activeMovies.findIndex(m => m.name === currentSelectedMovie.name);
+    if (activeIdx === -1) activeIdx = 0;
+
+    let nextIdx = (activeIdx + direction + activeMovies.length) % activeMovies.length;
+    currentSelectedMovie = activeMovies[nextIdx];
+    playVideoId(currentSelectedMovie.id, currentSelectedMovie.name);
   }
 
   /* Seek & Transit Navigation Functions */
@@ -1035,10 +1016,7 @@
     const m = Math.floor((seconds % 3600) / 60);
     const s = Math.floor(seconds % 60);
     const pad = num => String(num).padStart(2, '0');
-    if (h > 0) {
-      return `${h}:${pad(m)}:${pad(s)}`;
-    }
-    return `${pad(m)}:${pad(s)}`;
+    return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
   }
 
   function updateSeekUI() {
@@ -1085,68 +1063,46 @@
     try {
       const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
       if (data) {
-        if (data.time !== undefined) {
-          videoCurrentTime = data.time;
-        }
-        if (data.duration !== undefined && data.duration > 0) {
-          videoDuration = data.duration;
-        }
+        if (data.time !== undefined) videoCurrentTime = data.time;
+        if (data.duration !== undefined && data.duration > 0) videoDuration = data.duration;
         updateSeekUI();
       }
     } catch (e) {
-      /* Non-JSON iframe message */
+      /* Ignore non-JSON post messages */
     }
   });
 
   let fadeTimer = null;
   function triggerActivity() {
     const modal = document.getElementById('full-player-modal');
-    if (document.fullscreenElement || document.webkitFullscreenElement) {
-      modal.classList.add('active-user');
-      clearTimeout(fadeTimer);
-      fadeTimer = setTimeout(() => {
-        modal.classList.remove('active-user');
-      }, 4000);
-    }
+    modal.classList.add('active-user');
+    clearTimeout(fadeTimer);
+    fadeTimer = setTimeout(() => {
+      modal.classList.remove('active-user');
+    }, 4000);
   }
 
-  const modalElem = document.getElementById('full-player-modal');
   const clickShield = document.getElementById('click-shield');
-
   clickShield.addEventListener('mousemove', triggerActivity);
   clickShield.addEventListener('mousedown', triggerActivity);
   clickShield.addEventListener('touchstart', triggerActivity, { passive: true });
   
-  /* Keyboard & TV Remote Control Key Handler */
+  /* Keyboard & Remote Key Listener */
   document.addEventListener('keydown', function(e) {
     triggerActivity();
     const modal = document.getElementById('full-player-modal');
     if (modal.style.display === 'flex') {
-      if (e.key === ' ' || e.key === 'k') {
-        e.preventDefault();
-        togglePlayPause();
-      } else if (e.key === 'ArrowLeft') {
-        e.preventDefault();
-        skipTime(-10);
-      } else if (e.key === 'ArrowRight') {
-        e.preventDefault();
-        skipTime(10);
-      } else if (e.key === 'f' || e.key === 'F') {
-        e.preventDefault();
-        toggleFullScreen();
-      } else if (e.key === 'Escape') {
-        closeFullFeature();
-      }
+      if (e.key === ' ' || e.key === 'k') { e.preventDefault(); togglePlayPause(); }
+      else if (e.key === 'ArrowLeft') { e.preventDefault(); skipTime(-10); }
+      else if (e.key === 'ArrowRight') { e.preventDefault(); skipTime(10); }
+      else if (e.key === 'f' || e.key === 'F') { e.preventDefault(); toggleFullScreen(); }
+      else if (e.key === 'm' || e.key === 'M') { e.preventDefault(); togglePlayerMute(); }
+      else if (e.key === 'Escape') { closeFullFeature(); }
     }
   });
 
   function checkFullscreen() {
-    const modal = document.getElementById('full-player-modal');
-    if (document.fullscreenElement || document.webkitFullscreenElement) {
-      triggerActivity();
-    } else {
-      modal.classList.remove('active-user');
-    }
+    triggerActivity();
   }
 
   document.addEventListener('fullscreenchange', checkFullscreen);
