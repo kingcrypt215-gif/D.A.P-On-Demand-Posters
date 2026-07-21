@@ -442,6 +442,25 @@
       transition: height 0.4s ease-in-out;
     }
 
+    /* Permanent top-left watermark badge visible only in native fullscreen mode */
+    #fs-permanent-branding {
+      position: absolute;
+      top: 15px;
+      left: 20px;
+      z-index: 2147483647;
+      color: #FFD700;
+      font-weight: bold;
+      font-size: 15px;
+      letter-spacing: 1px;
+      text-shadow: 2px 2px 6px #000, 0 0 4px #000;
+      display: none;
+      pointer-events: none;
+    }
+    :fullscreen #fs-permanent-branding,
+    :-webkit-full-screen #fs-permanent-branding {
+      display: block;
+    }
+
     /* Transparent Click-Catcher Shield Overlay in Native Fullscreen */
     #click-shield {
       position: absolute;
@@ -460,7 +479,7 @@
       pointer-events: none;
     }
 
-    /* Transient Fullscreen Controls Overlay (Gold Aesthetic) */
+    /* Transient Fullscreen Controls Overlay (Gold Aesthetic) with Seekbar */
     .fs-transient-controls {
       position: absolute;
       bottom: 25px;
@@ -468,13 +487,16 @@
       transform: translateX(-50%);
       z-index: 2147483647;
       display: flex;
-      gap: 12px;
+      flex-direction: column;
+      gap: 10px;
       align-items: center;
       background: rgba(10, 10, 10, 0.92);
-      padding: 12px 22px;
+      padding: 14px 22px;
       border-radius: 8px;
       border: 2px solid #FFD700;
       box-shadow: 0 4px 20px rgba(0,0,0,0.9);
+      width: min(90vw, 550px);
+      box-sizing: border-box;
       opacity: 0;
       visibility: hidden;
       transition: opacity 0.4s ease-in-out, visibility 0.4s ease-in-out;
@@ -486,11 +508,19 @@
       visibility: visible;
     }
 
+    .fs-controls-row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      width: 100%;
+      justify-content: space-between;
+    }
+
     .fs-gold-btn {
       background: #FFD700;
       color: #000;
       border: none;
-      padding: 9px 16px;
+      padding: 8px 14px;
       cursor: pointer;
       font-weight: bold;
       border-radius: 4px;
@@ -511,17 +541,28 @@
     }
 
     .fs-volume-slider {
-      width: 90px;
+      width: 80px;
       accent-color: #FFD700;
       cursor: pointer;
     }
 
-    /* Native Fullscreen adjustments: Hide header in native fullscreen and expand body to 100vh */
-    :fullscreen #full-player-header,
-    :-webkit-full-screen #full-player-header {
-      display: none !important;
+    .fs-seekbar-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      color: #FFD700;
+      font-size: 12px;
+      font-weight: bold;
     }
 
+    .fs-seek-slider {
+      flex-grow: 1;
+      accent-color: #FFD700;
+      cursor: pointer;
+    }
+
+    /* Native Fullscreen adjustments: Expand body to 100vh and keep header visible with watermark & controls */
     :fullscreen #full-player-body,
     :-webkit-full-screen #full-player-body {
       height: 100vh;
@@ -608,14 +649,22 @@
     </div>
   </div>
   <div id="full-player-body">
+    <div id="fs-permanent-branding">D.A.P ON-DEMAND</div>
     <div id="click-shield"></div>
     <div class="fs-transient-controls">
-      <button class="fs-gold-btn" id="fs-play-pause-btn" onclick="togglePlayPause()">⏸ PAUSE</button>
-      <div class="fs-volume-wrap">
-        <span>VOL:</span>
-        <input type="range" class="fs-volume-slider" min="0" max="100" value="100" oninput="adjustVolume(this.value)" title="Volume Slider">
+      <div class="fs-controls-row">
+        <button class="fs-gold-btn" id="fs-play-pause-btn" onclick="togglePlayPause()">⏸ PAUSE</button>
+        <div class="fs-volume-wrap">
+          <span>VOL:</span>
+          <input type="range" class="fs-volume-slider" min="0" max="100" value="100" oninput="adjustVolume(this.value)" title="Volume Slider">
+        </div>
+        <button class="fs-gold-btn" onclick="toggleFullScreen()">⛶ EXIT FULLSCREEN</button>
       </div>
-      <button class="fs-gold-btn" onclick="toggleFullScreen()">⛶ EXIT FULLSCREEN</button>
+      <div class="fs-seekbar-wrap">
+        <span id="fs-current-time">0:00</span>
+        <input type="range" class="fs-seek-slider" id="fs-seek-slider" min="0" max="100" value="0" oninput="seekVideo(this.value)" title="Seek Slider">
+        <span id="fs-duration">0:00</span>
+      </div>
     </div>
     <iframe id="full-player-iframe" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
   </div>
@@ -728,6 +777,8 @@
   let currentSelectedMovie = allMovies[0];
   let isPlaying = true;
   let isHeroMuted = true;
+  let videoDuration = 0;
+  let videoCurrentTime = 0;
 
   function renderCategories() {
     const container = document.getElementById('categories-container');
@@ -866,6 +917,10 @@
     modal.style.display = 'flex';
     isPlaying = true;
     document.getElementById('fs-play-pause-btn').innerText = "⏸ PAUSE";
+    videoDuration = 0;
+    videoCurrentTime = 0;
+    document.getElementById('fs-seek-slider').value = 0;
+    updateTimeDisplay();
   }
 
   function closeFullFeature() {
@@ -912,16 +967,48 @@
     iframe.contentWindow.postMessage(JSON.stringify({command: 'volume', value: vol}), '*');
   }
 
+  function seekVideo(val) {
+    if (videoDuration > 0) {
+      const iframe = document.getElementById('full-player-iframe');
+      let targetTime = (val / 100) * videoDuration;
+      iframe.contentWindow.postMessage(JSON.stringify({command: 'seek', value: targetTime}), '*');
+    }
+  }
+
+  function formatTime(seconds) {
+    if (isNaN(seconds) || seconds <= 0) return "0:00";
+    let mins = Math.floor(seconds / 60);
+    let secs = Math.floor(seconds % 60);
+    return mins + ":" + (secs < 10 ? "0" : "") + secs;
+  }
+
+  function updateTimeDisplay() {
+    document.getElementById('fs-current-time').innerText = formatTime(videoCurrentTime);
+    document.getElementById('fs-duration').innerText = formatTime(videoDuration);
+    if (videoDuration > 0) {
+      document.getElementById('fs-seek-slider').value = (videoCurrentTime / videoDuration) * 100;
+    }
+  }
+
+  window.addEventListener('message', function(event) {
+    try {
+      let data = JSON.parse(event.data);
+      if (data && data.event === 'timeupdate') {
+        videoCurrentTime = data.time || 0;
+        videoDuration = data.duration || 0;
+        updateTimeDisplay();
+      }
+    } catch(e) {}
+  });
+
   let fadeTimer = null;
   function triggerActivity() {
     const modal = document.getElementById('full-player-modal');
-    if (document.fullscreenElement || document.webkitFullscreenElement) {
-      modal.classList.add('active-user');
-      clearTimeout(fadeTimer);
-      fadeTimer = setTimeout(() => {
-        modal.classList.remove('active-user');
-      }, 4000);
-    }
+    modal.classList.add('active-user');
+    clearTimeout(fadeTimer);
+    fadeTimer = setTimeout(() => {
+      modal.classList.remove('active-user');
+    }, 4000);
   }
 
   const modalElem = document.getElementById('full-player-modal');
