@@ -341,7 +341,6 @@
       z-index: 2147483647;
       box-sizing: border-box;
       position: relative;
-      transition: opacity 0.4s ease-in-out, visibility 0.4s ease-in-out;
     }
 
     .dap-player-brand {
@@ -517,7 +516,7 @@
       cursor: pointer;
     }
 
-    /* Native Fullscreen adjustments: Hide header completely, expand body to 100vh */
+    /* Native Fullscreen adjustments: Hide header in native fullscreen and expand body to 100vh */
     :fullscreen #full-player-header,
     :-webkit-full-screen #full-player-header {
       display: none !important;
