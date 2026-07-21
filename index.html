@@ -457,19 +457,19 @@
       transform: translateX(-50%);
       z-index: 2147483647;
       display: flex;
-      gap: clamp(6px, 1.2vw, 12px);
+      gap: 14px;
       align-items: center;
-      background: rgba(10, 10, 10, 0.94);
-      padding: clamp(8px, 1.5vw, 14px) clamp(12px, 2vw, 22px);
-      border-radius: 8px;
-      border: 2px solid #FFD700;
-      box-shadow: 0 4px 25px rgba(0,0,0,0.95);
+      background: rgba(15, 15, 15, 0.75);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 215, 0, 0.4);
+      border-radius: 50px;
+      padding: 10px 24px;
+      box-shadow: 0 10px 35px rgba(0, 0, 0, 0.9), 0 0 15px rgba(255, 215, 0, 0.2);
       opacity: 0;
       visibility: hidden;
       transition: opacity 0.4s ease-in-out, visibility 0.4s ease-in-out;
-      width: min(94vw, 950px);
       box-sizing: border-box;
-      flex-wrap: wrap;
       justify-content: center;
     }
 
@@ -480,74 +480,42 @@
       visibility: visible;
     }
 
+    /* Modern floating pill button style */
     .fs-gold-btn {
-      background: #FFD700;
+      background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
       color: #000;
-      border: none;
-      padding: clamp(8px, 1.2vw, 11px) clamp(10px, 1.8vw, 16px);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      border-radius: 30px;
+      padding: 10px 20px;
       cursor: pointer;
-      font-weight: bold;
-      border-radius: 4px;
-      font-size: clamp(11px, 1.5vw, 14px);
-      box-shadow: 0 2px 8px rgba(0,0,0,0.8);
-      transition: background 0.2s, transform 0.1s, outline 0.1s;
+      font-weight: 800;
+      font-size: 13px;
+      letter-spacing: 0.8px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.6);
+      transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
       white-space: nowrap;
       min-height: 38px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
     }
+
     .fs-gold-btn:hover, .fs-gold-btn:focus {
-      background: #fff;
-      transform: scale(1.03);
-      outline: 2px solid #FFD700;
+      background: #ffffff;
+      color: #000;
+      transform: translateY(-2px) scale(1.05);
+      box-shadow: 0 6px 20px rgba(255, 215, 0, 0.6);
+      outline: none;
     }
 
-    .fs-seeker-wrap {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex: 1 1 200px;
-      min-width: 180px;
+    /* Universal Hide non-functional controls across Modal & Native Fullscreen */
+    .fs-transient-controls .fs-gold-btn[onclick*="skipTime"],
+    .fs-transient-controls #fs-play-pause-btn,
+    .fs-transient-controls #fs-mute-btn,
+    .fs-transient-controls .fs-seeker-wrap,
+    .fs-transient-controls .fs-volume-wrap {
+      display: none !important;
     }
-
-    .fs-seek-slider {
-      flex-grow: 1;
-      height: 8px;
-      accent-color: #FFD700;
-      cursor: pointer;
-      border-radius: 4px;
-      touch-action: none;
-    }
-    .fs-seek-slider:focus { outline: 2px solid #FFD700; }
-
-    .fs-time-counter {
-      color: #FFD700;
-      font-size: clamp(11px, 1.4vw, 13px);
-      font-weight: bold;
-      font-family: monospace;
-      white-space: nowrap;
-      min-width: 85px;
-      text-align: center;
-    }
-
-    .fs-volume-wrap {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      color: #FFD700;
-      font-size: clamp(11px, 1.4vw, 13px);
-      font-weight: bold;
-    }
-
-    .fs-volume-slider {
-      width: clamp(50px, 8vw, 80px);
-      height: 6px;
-      accent-color: #FFD700;
-      cursor: pointer;
-      touch-action: none;
-    }
-    .fs-volume-slider:focus { outline: 1px solid #FFD700; }
 
     #full-player-iframe {
       position: absolute;
@@ -561,17 +529,9 @@
 
     @media (max-width: 600px) {
       .fs-transient-controls {
-        flex-direction: row;
-        width: 96vw;
-        padding: 8px;
-        gap: 6px;
+        padding: 8px 16px;
+        gap: 8px;
       }
-      .fs-seeker-wrap {
-        order: -1;
-        width: 100%;
-        flex: 1 1 100%;
-      }
-      .fs-volume-wrap { display: none; }
     }
 
     :fullscreen #full-player-header,
@@ -587,61 +547,6 @@
 
     :fullscreen #full-player-body,
     :-webkit-full-screen #full-player-body { height: 100vh; }
-
-    /* NATIVE FULLSCREEN EXCLUSIVE OVERRIDES */
-    :fullscreen .fs-transient-controls,
-    :-webkit-full-screen .fs-transient-controls {
-      background: rgba(15, 15, 15, 0.75);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 215, 0, 0.4);
-      border-radius: 50px;
-      padding: 10px 24px;
-      box-shadow: 0 10px 35px rgba(0, 0, 0, 0.9), 0 0 15px rgba(255, 215, 0, 0.2);
-      width: auto;
-      min-width: 0;
-      gap: 14px;
-    }
-
-    /* Hide unsupported buttons exclusively in Native Fullscreen */
-    :fullscreen .fs-transient-controls .fs-gold-btn[onclick*="skipTime"],
-    :fullscreen .fs-transient-controls #fs-play-pause-btn,
-    :fullscreen .fs-transient-controls #fs-mute-btn,
-    :fullscreen .fs-transient-controls .fs-seeker-wrap,
-    :fullscreen .fs-transient-controls .fs-volume-wrap,
-    :-webkit-full-screen .fs-transient-controls .fs-gold-btn[onclick*="skipTime"],
-    :-webkit-full-screen .fs-transient-controls #fs-play-pause-btn,
-    :-webkit-full-screen .fs-transient-controls #fs-mute-btn,
-    :-webkit-full-screen .fs-transient-controls .fs-seeker-wrap,
-    :-webkit-full-screen .fs-transient-controls .fs-volume-wrap {
-      display: none !important;
-    }
-
-    /* Modern floating pill style for remaining native fullscreen buttons */
-    :fullscreen .fs-transient-controls .fs-gold-btn,
-    :-webkit-full-screen .fs-transient-controls .fs-gold-btn {
-      background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
-      color: #000;
-      border: 1px solid rgba(255, 255, 255, 0.4);
-      border-radius: 30px;
-      padding: 10px 20px;
-      font-size: 13px;
-      font-weight: 800;
-      letter-spacing: 0.8px;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.6);
-      transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
-    }
-
-    :fullscreen .fs-transient-controls .fs-gold-btn:hover,
-    :fullscreen .fs-transient-controls .fs-gold-btn:focus,
-    :-webkit-full-screen .fs-transient-controls .fs-gold-btn:hover,
-    :-webkit-full-screen .fs-transient-controls .fs-gold-btn:focus {
-      background: #ffffff;
-      color: #000;
-      transform: translateY(-2px) scale(1.05);
-      box-shadow: 0 6px 20px rgba(255, 215, 0, 0.6);
-      outline: none;
-    }
 
     @keyframes fadeIn {
       from { opacity: 0; }
@@ -733,7 +638,7 @@
         <span>VOL:</span>
         <input type="range" class="fs-volume-slider" id="fs-volume-slider" min="0" max="100" value="100" oninput="adjustVolume(this.value)" title="Volume Slider">
       </div>
-      <button class="fs-gold-btn" onclick="toggleFullScreen()">⛶ EXIT FULLSCREEN</button>
+      <button class="fs-gold-btn" onclick="toggleFullScreen()">⛶ FULLSCREEN</button>
     </div>
     <iframe id="full-player-iframe" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
   </div>
