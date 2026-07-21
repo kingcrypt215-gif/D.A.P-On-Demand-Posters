@@ -250,14 +250,14 @@
 
     .close-details-btn {
       background: #333;
-      color: #fff;
-      border: 1px solid #555;
+      color: #FFD700;
+      border: 1px solid #FFD700;
       padding: 12px 18px;
       font-weight: bold;
       border-radius: 4px;
       cursor: pointer;
     }
-    .close-details-btn:hover { background: #444; }
+    .close-details-btn:hover { background: #FFD700; color: #000; }
 
     /* Episode Selector inside Details Modal for Series */
     #details-episode-container {
@@ -379,7 +379,7 @@
     }
 
     .fs-toggle-btn {
-      background: #333;
+      background: #111;
       color: #FFD700;
       border: 1px solid #FFD700;
       padding: 8px 14px;
@@ -452,7 +452,7 @@
       pointer-events: none;
     }
 
-    /* Transient Fullscreen Controls Overlay (Play/Pause, Prev, Next, Volume, Fullscreen) */
+    /* Transient Fullscreen Controls Overlay (Gold Aesthetic) */
     .fs-transient-controls {
       position: absolute;
       bottom: 25px;
@@ -460,10 +460,10 @@
       transform: translateX(-50%);
       z-index: 2147483647;
       display: flex;
-      gap: 10px;
+      gap: 12px;
       align-items: center;
-      background: rgba(10, 10, 10, 0.85);
-      padding: 12px 20px;
+      background: rgba(10, 10, 10, 0.9);
+      padding: 12px 22px;
       border-radius: 8px;
       border: 2px solid #FFD700;
       box-shadow: 0 4px 20px rgba(0,0,0,0.9);
@@ -478,11 +478,11 @@
       visibility: visible;
     }
 
-    .fs-control-btn {
+    .fs-gold-btn {
       background: #FFD700;
       color: #000;
       border: none;
-      padding: 8px 14px;
+      padding: 9px 16px;
       cursor: pointer;
       font-weight: bold;
       border-radius: 4px;
@@ -491,10 +491,19 @@
       transition: background 0.2s, transform 0.1s;
       white-space: nowrap;
     }
-    .fs-control-btn:hover { background: #fff; transform: scale(1.03); }
+    .fs-gold-btn:hover { background: #fff; transform: scale(1.03); }
+
+    .fs-volume-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #FFD700;
+      font-size: 13px;
+      font-weight: bold;
+    }
 
     .fs-volume-slider {
-      width: 80px;
+      width: 90px;
       accent-color: #FFD700;
       cursor: pointer;
     }
@@ -599,12 +608,12 @@
     <div id="fs-permanent-branding">D.A.P ON-DEMAND</div>
     <div id="click-shield"></div>
     <div class="fs-transient-controls">
-      <button class="fs-control-btn" onclick="navMovie(-1)">⏮ PREV</button>
-      <button class="fs-control-btn" id="fs-play-pause-btn" onclick="togglePlayPause()">⏸ PAUSE</button>
-      <button class="fs-control-btn" onclick="navMovie(1)">NEXT ⏭</button>
-      <input type="range" class="fs-volume-slider" min="0" max="100" value="100" oninput="adjustVolume(this.value)" title="Volume">
-      <button class="fs-control-btn" onclick="toggleFullScreen()">⛶ FULLSCREEN</button>
-      <button class="fs-control-btn" onclick="closeFullFeature()">✕ EXIT</button>
+      <button class="fs-gold-btn" id="fs-play-pause-btn" onclick="togglePlayPause()">⏸ PAUSE</button>
+      <div class="fs-volume-wrap">
+        <span>VOL:</span>
+        <input type="range" class="fs-volume-slider" min="0" max="100" value="100" oninput="adjustVolume(this.value)" title="Volume Slider">
+      </div>
+      <button class="fs-gold-btn" onclick="toggleFullScreen()">⛶ EXIT FULLSCREEN</button>
     </div>
     <iframe id="full-player-iframe" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
   </div>
@@ -715,7 +724,6 @@
   });
 
   let currentSelectedMovie = allMovies[0];
-  let activeMovieIndex = 0;
   let isPlaying = true;
 
   function renderCategories() {
@@ -772,7 +780,6 @@
 
   function openDetailsModal(movie) {
     currentSelectedMovie = movie;
-    activeMovieIndex = allMovies.findIndex(m => m.name === movie.name);
     selectMovieForPreview(movie);
 
     document.getElementById('details-modal-img').src = movie.poster;
@@ -830,7 +837,6 @@
     const titleElem = document.getElementById('full-player-title');
     const modalIframe = document.getElementById('full-player-iframe');
 
-    activeMovieIndex = allMovies.findIndex(m => m.name === currentSelectedMovie.name);
     const fullText = `D.A.P ON-DEMAND: ${titleText}   &bull;   `;
     titleElem.innerHTML = fullText + fullText;
 
@@ -868,7 +874,6 @@
   function togglePlayPause() {
     const iframe = document.getElementById('full-player-iframe');
     const btn = document.getElementById('fs-play-pause-btn');
-    // Toggle player state command via postMessage or reload if iframe restriction applies
     isPlaying = !isPlaying;
     if (isPlaying) {
       btn.innerText = "⏸ PAUSE";
@@ -883,17 +888,6 @@
     const iframe = document.getElementById('full-player-iframe');
     let vol = val / 100;
     iframe.contentWindow.postMessage(JSON.stringify({command: 'volume', value: vol}), '*');
-  }
-
-  function navMovie(direction) {
-    activeMovieIndex = (activeMovieIndex + direction + allMovies.length) % allMovies.length;
-    let nextMovie = allMovies[activeMovieIndex];
-    if (nextMovie.active && nextMovie.id) {
-      currentSelectedMovie = nextMovie;
-      playVideoId(nextMovie.id, nextMovie.name);
-    } else {
-      navMovie(direction); // Skip inactive placeholder items automatically
-    }
   }
 
   let fadeTimer = null;
