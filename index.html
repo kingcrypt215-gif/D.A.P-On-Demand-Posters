@@ -442,7 +442,7 @@
       transition: height 0.4s ease-in-out;
     }
 
-    /* Permanent clean & minimalist top-left watermark badge in native fullscreen mode */
+    /* Permanent top-left watermark badge visible constantly in native fullscreen mode */
     #fs-permanent-branding {
       position: absolute;
       top: 15px;
@@ -455,9 +455,10 @@
       text-shadow: 2px 2px 6px #000, 0 0 4px #000;
       display: none;
       pointer-events: none;
-      background: transparent;
-      padding: 0;
-      backdrop-filter: none;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 4px 8px;
+      border-radius: 4px;
+      backdrop-filter: blur(2px);
     }
     :fullscreen #fs-permanent-branding,
     :-webkit-full-screen #fs-permanent-branding,
