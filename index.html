@@ -458,17 +458,11 @@
       background: transparent;
       padding: 0;
       backdrop-filter: none;
-      opacity: 0;
-      visibility: hidden;
-      transition: opacity 0.4s ease-in-out, visibility 0.4s ease-in-out;
     }
-
-    :fullscreen #full-player-modal.active-user #fs-permanent-branding,
-    :-webkit-full-screen #full-player-modal.active-user #fs-permanent-branding,
-    :-ms-fullscreen #full-player-modal.active-user #fs-permanent-branding {
+    :fullscreen #fs-permanent-branding,
+    :-webkit-full-screen #fs-permanent-branding,
+    :-ms-fullscreen #fs-permanent-branding {
       display: block;
-      opacity: 1;
-      visibility: visible;
     }
 
     /* Universal multi-device touch wrapper / click shield overlay */
@@ -577,7 +571,7 @@
       cursor: pointer;
     }
 
-    /* Native Fullscreen adjustments: Expand body to 100vh and hide desktop header box */
+    /* Native Fullscreen adjustments: Expand body to 100vh and hide standard desktop header box */
     :fullscreen #full-player-body,
     :-webkit-full-screen #full-player-body,
     :-ms-fullscreen #full-player-body {
@@ -931,8 +925,7 @@
     const modal = document.getElementById('full-player-modal');
     const modalIframe = document.getElementById('full-player-iframe');
 
-    // Notice we set controls=0 here so Dailymotion's native play/share/related buttons are completely hidden!
-    modalIframe.src = `https://www.dailymotion.com/embed/video/${videoId}?autoplay=1&mute=0&controls=0&queue-enable=0&sharing-enable=0&related-video=0`;
+    modalIframe.src = `https://www.dailymotion.com/embed/video/${videoId}?autoplay=1&mute=0&controls=1&queue-enable=0&sharing-enable=0&related-video=0`;
     modal.style.display = 'flex';
     isPlaying = true;
     document.getElementById('fs-play-pause-btn').innerText = "⏸ PAUSE";
