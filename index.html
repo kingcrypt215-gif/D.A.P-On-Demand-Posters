@@ -490,14 +490,18 @@
       display: flex;
       gap: 12px;
       align-items: center;
-      background: rgba(10, 10, 10, 0.9);
-      padding: 12px 22px;
+      background: rgba(10, 10, 10, 0.92);
+      padding: 12px 20px;
       border-radius: 8px;
       border: 2px solid #FFD700;
       box-shadow: 0 4px 20px rgba(0,0,0,0.9);
       opacity: 0;
       visibility: hidden;
       transition: opacity 0.4s ease-in-out, visibility 0.4s ease-in-out;
+      max-width: 90vw;
+      box-sizing: border-box;
+      flex-wrap: wrap;
+      justify-content: center;
     }
 
     :fullscreen #full-player-modal.active-user .fs-transient-controls,
@@ -510,7 +514,7 @@
       background: #FFD700;
       color: #000;
       border: none;
-      padding: 9px 16px;
+      padding: 9px 14px;
       cursor: pointer;
       font-weight: bold;
       border-radius: 4px;
@@ -520,6 +524,33 @@
       white-space: nowrap;
     }
     .fs-gold-btn:hover { background: #fff; transform: scale(1.03); }
+
+    /* Track Seeker Timeline & Counter Styling */
+    .fs-seeker-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-grow: 1;
+      min-width: 220px;
+    }
+
+    .fs-seek-slider {
+      flex-grow: 1;
+      height: 6px;
+      accent-color: #FFD700;
+      cursor: pointer;
+      border-radius: 3px;
+    }
+
+    .fs-time-counter {
+      color: #FFD700;
+      font-size: 12px;
+      font-weight: bold;
+      font-family: monospace;
+      white-space: nowrap;
+      min-width: 95px;
+      text-align: center;
+    }
 
     .fs-volume-wrap {
       display: flex;
@@ -531,7 +562,7 @@
     }
 
     .fs-volume-slider {
-      width: 90px;
+      width: 70px;
       accent-color: #FFD700;
       cursor: pointer;
     }
@@ -637,7 +668,18 @@
     <div id="fs-permanent-branding">D.A.P ON-DEMAND</div>
     <div id="click-shield"></div>
     <div class="fs-transient-controls">
+      <!-- Transit Navigation Buttons -->
+      <button class="fs-gold-btn" onclick="skipTime(-10)" title="Rewind 10s">⏮ -10s</button>
       <button class="fs-gold-btn" id="fs-play-pause-btn" onclick="togglePlayPause()">⏸ PAUSE</button>
+      <button class="fs-gold-btn" onclick="skipTime(10)" title="Forward 10s">+10s ⏭</button>
+
+      <!-- Track Seeker & Counter -->
+      <div class="fs-seeker-wrap">
+        <input type="range" class="fs-seek-slider" id="fs-seek-slider" min="0" max="100" value="0" step="0.1" oninput="onSeekInput(this.value)" onchange="onSeekChange(this.value)">
+        <span class="fs-time-counter" id="fs-time-counter">00:00 / 00:00</span>
+      </div>
+
+      <!-- Volume & Screen Controls -->
       <div class="fs-volume-wrap">
         <span>VOL:</span>
         <input type="range" class="fs-volume-slider" min="0" max="100" value="100" oninput="adjustVolume(this.value)" title="Volume Slider">
@@ -755,6 +797,9 @@
   let currentSelectedMovie = allMovies[0];
   let isPlaying = true;
   let isHeroMuted = true;
+  let videoCurrentTime = 0;
+  let videoDuration = 0;
+  let isUserSeeking = false;
 
   function renderCategories() {
     const container = document.getElementById('categories-container');
@@ -889,6 +934,10 @@
     const fullText = `D.A.P ON-DEMAND: ${titleText}   &bull;   `;
     titleElem.innerHTML = fullText + fullText;
 
+    videoCurrentTime = 0;
+    videoDuration = 0;
+    updateSeekUI();
+
     modalIframe.src = `https://www.dailymotion.com/embed/video/${videoId}?autoplay=1&mute=0&controls=1&queue-enable=0&sharing-enable=0&related-video=0`;
     modal.style.display = 'flex';
     isPlaying = true;
@@ -939,6 +988,76 @@
     iframe.contentWindow.postMessage(JSON.stringify({command: 'volume', value: vol}), '*');
   }
 
+  /* Seek & Transit Navigation Functions */
+  function formatTime(seconds) {
+    if (isNaN(seconds) || seconds <= 0) return "00:00";
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = Math.floor(seconds % 60);
+    const pad = num => String(num).padStart(2, '0');
+    if (h > 0) {
+      return `${h}:${pad(m)}:${pad(s)}`;
+    }
+    return `${pad(m)}:${pad(s)}`;
+  }
+
+  function updateSeekUI() {
+    if (isUserSeeking) return;
+    const seekSlider = document.getElementById('fs-seek-slider');
+    const timeDisplay = document.getElementById('fs-time-counter');
+    
+    if (videoDuration > 0) {
+      seekSlider.max = videoDuration;
+      seekSlider.value = videoCurrentTime;
+    } else {
+      seekSlider.value = 0;
+    }
+    
+    timeDisplay.innerText = `${formatTime(videoCurrentTime)} / ${formatTime(videoDuration)}`;
+  }
+
+  function seekTo(val) {
+    const iframe = document.getElementById('full-player-iframe');
+    videoCurrentTime = parseFloat(val);
+    iframe.contentWindow.postMessage(JSON.stringify({ command: 'seek', value: videoCurrentTime }), '*');
+    updateSeekUI();
+  }
+
+  function skipTime(seconds) {
+    let target = Math.max(0, videoCurrentTime + seconds);
+    if (videoDuration > 0) target = Math.min(videoDuration, target);
+    seekTo(target);
+  }
+
+  function onSeekInput(val) {
+    isUserSeeking = true;
+    const timeDisplay = document.getElementById('fs-time-counter');
+    timeDisplay.innerText = `${formatTime(val)} / ${formatTime(videoDuration)}`;
+  }
+
+  function onSeekChange(val) {
+    isUserSeeking = false;
+    seekTo(val);
+  }
+
+  /* Listen to postMessages emitted by Dailymotion iframe player */
+  window.addEventListener('message', function(event) {
+    try {
+      const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+      if (data) {
+        if (data.time !== undefined) {
+          videoCurrentTime = data.time;
+        }
+        if (data.duration !== undefined && data.duration > 0) {
+          videoDuration = data.duration;
+        }
+        updateSeekUI();
+      }
+    } catch (e) {
+      /* Non-JSON iframe message */
+    }
+  });
+
   let fadeTimer = null;
   function triggerActivity() {
     const modal = document.getElementById('full-player-modal');
@@ -980,4 +1099,3 @@
 </script>
 </body>
 </html>
-
