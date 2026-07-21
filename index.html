@@ -290,7 +290,7 @@
       border-color: #FFD700;
     }
 
-    /* Custom D.A.P On-Demand Fullscreen Theater Player Modal with Marquee & Fullscreen Button */
+    /* Custom D.A.P On-Demand Fullscreen Theater Player Modal */
     #full-player-modal {
       position: fixed;
       top: 0; left: 0; width: 100vw; height: 100vh;
@@ -313,6 +313,7 @@
       z-index: 2147483647;
       box-sizing: border-box;
       position: relative;
+      transition: opacity 0.5s ease;
     }
 
     .dap-player-brand {
@@ -413,7 +414,7 @@
       overflow: hidden;
     }
 
-    /* Permanent top-left watermark branding when in native fullscreen */
+    /* Permanent top-left watermark badge visible only in native fullscreen mode */
     #fs-permanent-branding {
       position: absolute;
       top: 15px;
@@ -421,7 +422,7 @@
       z-index: 2147483647;
       color: #FFD700;
       font-weight: bold;
-      font-size: 16px;
+      font-size: 15px;
       letter-spacing: 1px;
       text-shadow: 2px 2px 6px #000, 0 0 4px #000;
       display: none;
@@ -430,6 +431,17 @@
     :fullscreen #fs-permanent-branding,
     :-webkit-full-screen #fs-permanent-branding {
       display: block;
+    }
+
+    /* Auto-hide header when in native fullscreen */
+    :fullscreen #full-player-header,
+    :-webkit-full-screen #full-player-header {
+      opacity: 0;
+      pointer-events: none;
+    }
+    :fullscreen #full-player-body,
+    :-webkit-full-screen #full-player-body {
+      height: 100vh;
     }
 
     #full-player-iframe {
