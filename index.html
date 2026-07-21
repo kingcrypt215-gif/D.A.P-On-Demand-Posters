@@ -280,7 +280,7 @@
     <button class="close-modal-btn" onclick="closeFullFeature()">CLOSE ✕</button>
   </div>
   <div id="full-player-body">
-    <!-- Episode Selector Box (Used for series like Pioneer One) -->
+    <!-- Episode Selector Box (Used for Pioneer One series) -->
     <div id="episode-selector">
       <h3>Select Episode</h3>
       <div id="episode-list"></div>
@@ -300,7 +300,7 @@
     { name: "Artifacts Of Idealism", id: "k7iwKjmDYVxYRSHWR4q", poster: "ARTIFACTS OF IDEALISM.jpg", desc: "Directed by Sean Corbett, a thought-provoking exploration of truth and philosophy.", clipStart: 15, clipEnd: 50, active: true },
     { name: "TIGER", id: "k5q4oSCRSb8wg7HWT2S", poster: "TIGER.jpg", desc: "Beaufort presents Tiger, starring Rachel Blais and James McFay.", clipStart: 60, clipEnd: 95, active: true },
     
-    // Pioneer One Series (Multi-Episode Support)
+    // Pioneer One Series (Linked with both exact episode IDs provided)
     { 
       name: "PIONEER ONE", 
       isSeries: true,
@@ -411,7 +411,6 @@
     modalTitle.innerText = "Now Playing: " + currentSelectedMovie.name;
 
     if (currentSelectedMovie.isSeries) {
-      // Show Episode Selector Menu for series
       modalIframe.style.display = "none";
       selector.style.display = "block";
       episodeList.innerHTML = "";
@@ -428,7 +427,6 @@
         episodeList.appendChild(btn);
       });
     } else {
-      // Play standard single video
       selector.style.display = "none";
       modalIframe.style.display = "block";
       modalIframe.src = `https://www.dailymotion.com/embed/video/${currentSelectedMovie.id}?autoplay=1&mute=0&controls=1&queue-enable=0&sharing-enable=0&related-video=0`;
