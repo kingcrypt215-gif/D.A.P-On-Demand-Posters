@@ -197,12 +197,53 @@
       flex-grow: 1;
       width: 100%;
       background: #000;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
     }
 
     #full-player-iframe {
       position: absolute;
       top: 0; left: 0; width: 100%; height: 100%;
       border: none;
+    }
+
+    /* Episode Selector Overlay for Series */
+    #episode-selector {
+      position: relative;
+      z-index: 10;
+      background: rgba(20, 20, 20, 0.95);
+      border: 2px solid #FFD700;
+      padding: 30px;
+      border-radius: 8px;
+      text-align: center;
+      max-width: 400px;
+      width: 90%;
+      display: none;
+    }
+
+    #episode-selector h3 {
+      color: #FFD700;
+      margin-top: 0;
+    }
+
+    .ep-btn {
+      display: block;
+      width: 100%;
+      background: #333;
+      color: #fff;
+      border: 1px solid #555;
+      padding: 12px;
+      margin: 10px 0;
+      font-weight: bold;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .ep-btn:hover {
+      background: #FFD700;
+      color: #000;
+      border-color: #FFD700;
     }
   </style>
 </head>
@@ -239,12 +280,16 @@
     <button class="close-modal-btn" onclick="closeFullFeature()">CLOSE ✕</button>
   </div>
   <div id="full-player-body">
-    <iframe id="full-player-iframe" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+    <!-- Episode Selector Box (Used for series like Pioneer One) -->
+    <div id="episode-selector">
+      <h3>Select Episode</h3>
+      <div id="episode-list"></div>
+    </div>
+    <iframe id="full-player-iframe" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen style="display:none;"></iframe>
   </div>
 </div>
 
 <script>
-  // Mapped precisely using your clean file names
   const vodLibrary = [
     // Featured / Active Stream Links
     { name: "Strive", id: "k4ObpDYw3BipbbHWEW2", poster: "Strive.jpg", desc: "Because everyone deserves a chance. An inspiring feature starring Danny Glover.", clipStart: 120, clipEnd: 155, active: true },
@@ -254,7 +299,19 @@
     { name: "Half Empty", id: "k3oEnpPscWIfF8HWOdw", poster: "Half Empty.jpg", desc: "A gripping drama directed by Troy Carlton exploring intense personal stakes.", clipStart: 40, clipEnd: 75, active: true },
     { name: "Artifacts Of Idealism", id: "k7iwKjmDYVxYRSHWR4q", poster: "ARTIFACTS OF IDEALISM.jpg", desc: "Directed by Sean Corbett, a thought-provoking exploration of truth and philosophy.", clipStart: 15, clipEnd: 50, active: true },
     { name: "TIGER", id: "k5q4oSCRSb8wg7HWT2S", poster: "TIGER.jpg", desc: "Beaufort presents Tiger, starring Rachel Blais and James McFay.", clipStart: 60, clipEnd: 95, active: true },
-    { name: "PIONEER ONE", id: "k3yLmn40bkRQJtHYsZE", poster: "PIONEER ONE.jpg", desc: "Sci-fi drama series exploring a mysterious object landing on Earth.", clipStart: 10, clipEnd: 45, active: true },
+    
+    // Pioneer One Series (Multi-Episode Support)
+    { 
+      name: "PIONEER ONE", 
+      isSeries: true,
+      episodes: [
+        { title: "Episode 1", id: "k3yLmn40bkRQJtHYsZE" },
+        { title: "Episode 2", id: "k2bedAe74dcpEQHYtX8" }
+      ],
+      poster: "PIONEER ONE.jpg", 
+      desc: "Sci-fi drama series exploring a mysterious object landing on Earth.", 
+      clipStart: 10, clipEnd: 45, active: true 
+    },
 
     // Complete Poster Library Catalog
     { name: "56", id: "", poster: "56.jpg", desc: "Award-winning documentary short featured at the 51st United Nations Human Rights Council.", clipStart: 0, clipEnd: 30, active: false },
@@ -328,8 +385,10 @@
     document.getElementById('hero-desc').innerText = movie.desc;
 
     const heroIframe = document.getElementById('hero-iframe');
-    if (movie.active && movie.id) {
-      heroIframe.src = `https://www.dailymotion.com/embed/video/${movie.id}?autoplay=1&mute=1&controls=0&start=${movie.clipStart}&end=${movie.clipEnd}&loop=1&queue-enable=0&sharing-enable=0&related-video=0`;
+    let previewId = movie.isSeries ? movie.episodes[0].id : movie.id;
+
+    if (movie.active && previewId) {
+      heroIframe.src = `https://www.dailymotion.com/embed/video/${previewId}?autoplay=1&mute=1&controls=0&start=${movie.clipStart}&end=${movie.clipEnd}&loop=1&queue-enable=0&sharing-enable=0&related-video=0`;
       heroIframe.style.display = "block";
     } else {
       heroIframe.src = "";
@@ -338,16 +397,42 @@
   }
 
   function launchFullFeature() {
-    if (!currentSelectedMovie.active || !currentSelectedMovie.id) {
+    if (!currentSelectedMovie.active || (!currentSelectedMovie.id && !currentSelectedMovie.isSeries)) {
       alert("This title's full feature link is coming soon!");
       return;
     }
+
     const modal = document.getElementById('full-player-modal');
     const modalTitle = document.getElementById('full-player-title');
     const modalIframe = document.getElementById('full-player-iframe');
+    const selector = document.getElementById('episode-selector');
+    const episodeList = document.getElementById('episode-list');
 
     modalTitle.innerText = "Now Playing: " + currentSelectedMovie.name;
-    modalIframe.src = `https://www.dailymotion.com/embed/video/${currentSelectedMovie.id}?autoplay=1&mute=0&controls=1&queue-enable=0&sharing-enable=0&related-video=0`;
+
+    if (currentSelectedMovie.isSeries) {
+      // Show Episode Selector Menu for series
+      modalIframe.style.display = "none";
+      selector.style.display = "block";
+      episodeList.innerHTML = "";
+
+      currentSelectedMovie.episodes.forEach(ep => {
+        let btn = document.createElement('button');
+        btn.className = 'ep-btn';
+        btn.innerText = ep.title;
+        btn.onclick = () => {
+          selector.style.display = "none";
+          modalIframe.style.display = "block";
+          modalIframe.src = `https://www.dailymotion.com/embed/video/${ep.id}?autoplay=1&mute=0&controls=1&queue-enable=0&sharing-enable=0&related-video=0`;
+        };
+        episodeList.appendChild(btn);
+      });
+    } else {
+      // Play standard single video
+      selector.style.display = "none";
+      modalIframe.style.display = "block";
+      modalIframe.src = `https://www.dailymotion.com/embed/video/${currentSelectedMovie.id}?autoplay=1&mute=0&controls=1&queue-enable=0&sharing-enable=0&related-video=0`;
+    }
     
     modal.style.display = 'flex';
   }
