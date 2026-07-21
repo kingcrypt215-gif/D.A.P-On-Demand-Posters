@@ -434,6 +434,24 @@
       display: block;
     }
 
+    /* Transparent Click-Catcher Shield Overlay: Intercepts clicks over the iframe so touch/mouse interactions wake up the controls */
+    #click-shield {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 2147483645;
+      background: transparent;
+      display: none;
+    }
+    :fullscreen #click-shield,
+    :-webkit-full-screen #click-shield {
+      display: block;
+    }
+    :fullscreen #full-player-modal.active-user #click-shield,
+    :-webkit-full-screen #full-player-modal.active-user #click-shield {
+      pointer-events: none;
+    }
+
     /* Transient Fullscreen Controls Overlay (Fades out when inactive, fades in on user activity) */
     .fs-transient-controls {
       position: absolute;
@@ -494,7 +512,7 @@
       border: none;
       background: #000;
       pointer-events: auto;
-      z-index: 2147483646;
+      z-index: 2147483644;
     }
 
     @keyframes fadeIn {
@@ -567,6 +585,7 @@
   </div>
   <div id="full-player-body">
     <div id="fs-permanent-branding">D.A.P ON-DEMAND</div>
+    <div id="click-shield"></div>
     <div class="fs-transient-controls">
       <button class="fs-control-btn" onclick="toggleFullScreen()">EXIT FULLSCREEN</button>
       <button class="fs-control-btn" onclick="closeFullFeature()">CLOSE PLAYER</button>
@@ -832,15 +851,17 @@
       clearTimeout(fadeTimer);
       fadeTimer = setTimeout(() => {
         modal.classList.remove('active-user');
-      }, 3000);
+      }, 3500);
     }
   }
 
   const modalElem = document.getElementById('full-player-modal');
-  modalElem.addEventListener('mousemove', triggerActivity);
-  modalElem.addEventListener('mousedown', triggerActivity);
-  modalElem.addEventListener('touchstart', triggerActivity, { passive: true });
-  modalElem.addEventListener('keydown', triggerActivity);
+  const clickShield = document.getElementById('click-shield');
+
+  clickShield.addEventListener('mousemove', triggerActivity);
+  clickShield.addEventListener('mousedown', triggerActivity);
+  clickShield.addEventListener('touchstart', triggerActivity, { passive: true });
+  document.addEventListener('keydown', triggerActivity);
 
   function checkFullscreen() {
     const modal = document.getElementById('full-player-modal');
