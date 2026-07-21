@@ -442,7 +442,7 @@
       transition: height 0.4s ease-in-out;
     }
 
-    /* Permanent top-left watermark badge visible constantly in native fullscreen mode */
+    /* Permanent clean & minimalist top-left watermark badge in native fullscreen mode (Always Visible) */
     #fs-permanent-branding {
       position: absolute;
       top: 15px;
@@ -455,11 +455,11 @@
       text-shadow: 2px 2px 6px #000, 0 0 4px #000;
       display: none;
       pointer-events: none;
-      background: rgba(0, 0, 0, 0.4);
-      padding: 4px 8px;
-      border-radius: 4px;
-      backdrop-filter: blur(2px);
+      background: transparent;
+      padding: 0;
+      backdrop-filter: none;
     }
+
     :fullscreen #fs-permanent-branding,
     :-webkit-full-screen #fs-permanent-branding,
     :-ms-fullscreen #fs-permanent-branding {
@@ -572,7 +572,7 @@
       cursor: pointer;
     }
 
-    /* Native Fullscreen adjustments: Expand body to 100vh and hide standard desktop header box */
+    /* Native Fullscreen adjustments: Expand body to 100vh and setup transient fade for the Marquee header bar */
     :fullscreen #full-player-body,
     :-webkit-full-screen #full-player-body,
     :-ms-fullscreen #full-player-body {
@@ -582,7 +582,20 @@
     :fullscreen #full-player-header,
     :-webkit-full-screen #full-player-header,
     :-ms-fullscreen #full-player-header {
-      display: none;
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      z-index: 2147483647;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.4s ease-in-out, visibility 0.4s ease-in-out;
+    }
+
+    :fullscreen #full-player-modal.active-user #full-player-header,
+    :-webkit-full-screen #full-player-modal.active-user #full-player-header,
+    :-ms-fullscreen #full-player-modal.active-user #full-player-header {
+      opacity: 1;
+      visibility: visible;
     }
 
     #full-player-iframe {
@@ -926,7 +939,7 @@
     const modal = document.getElementById('full-player-modal');
     const modalIframe = document.getElementById('full-player-iframe');
 
-    modalIframe.src = `https://www.dailymotion.com/embed/video/${videoId}?autoplay=1&mute=0&controls=1&queue-enable=0&sharing-enable=0&related-video=0`;
+    modalIframe.src = `https://www.dailymotion.com/embed/video/${videoId}?autoplay=1&mute=0&controls=0&queue-enable=0&sharing-enable=0&related-video=0`;
     modal.style.display = 'flex';
     isPlaying = true;
     document.getElementById('fs-play-pause-btn').innerText = "⏸ PAUSE";
