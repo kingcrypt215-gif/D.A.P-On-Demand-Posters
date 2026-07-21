@@ -313,7 +313,7 @@
       z-index: 2147483647;
       box-sizing: border-box;
       position: relative;
-      transition: opacity 0.5s ease;
+      transition: opacity 0.4s ease-in-out, visibility 0.4s ease-in-out;
     }
 
     .dap-player-brand {
@@ -412,6 +412,7 @@
       height: calc(100vh - 60px);
       background: #000;
       overflow: hidden;
+      transition: height 0.4s ease-in-out;
     }
 
     /* Permanent top-left watermark badge visible only in native fullscreen mode */
@@ -433,12 +434,53 @@
       display: block;
     }
 
-    /* Auto-hide header when in native fullscreen */
+    /* Transient Fullscreen Controls Overlay (Fades out when inactive, fades in on user activity) */
+    .fs-transient-controls {
+      position: absolute;
+      bottom: 25px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 2147483647;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.4s ease-in-out, visibility 0.4s ease-in-out;
+    }
+
+    :fullscreen #full-player-modal.active-user .fs-transient-controls,
+    :-webkit-full-screen #full-player-modal.active-user .fs-transient-controls {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .fs-control-btn {
+      background: #FFD700 !important;
+      color: #000 !important;
+      border: none;
+      padding: 10px 20px;
+      cursor: pointer;
+      font-weight: bold;
+      border-radius: 4px;
+      font-size: 14px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.8);
+      transition: background 0.2s;
+    }
+    .fs-control-btn:hover { background: #fff !important; }
+
+    /* Auto-hide header in native fullscreen unless active user */
     :fullscreen #full-player-header,
     :-webkit-full-screen #full-player-header {
       opacity: 0;
-      pointer-events: none;
+      visibility: hidden;
     }
+    :fullscreen #full-player-modal.active-user #full-player-header,
+    :-webkit-full-screen #full-player-modal.active-user #full-player-header {
+      opacity: 1;
+      visibility: visible;
+    }
+
     :fullscreen #full-player-body,
     :-webkit-full-screen #full-player-body {
       height: 100vh;
@@ -525,6 +567,10 @@
   </div>
   <div id="full-player-body">
     <div id="fs-permanent-branding">D.A.P ON-DEMAND</div>
+    <div class="fs-transient-controls">
+      <button class="fs-control-btn" onclick="toggleFullScreen()">EXIT FULLSCREEN</button>
+      <button class="fs-control-btn" onclick="closeFullFeature()">CLOSE PLAYER</button>
+    </div>
     <iframe id="full-player-iframe" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
   </div>
 </div>
@@ -764,6 +810,7 @@
 
     modalIframe.src = "";
     modal.style.display = 'none';
+    modal.classList.remove('active-user');
   }
 
   function toggleFullScreen() {
@@ -776,6 +823,36 @@
       else if (document.webkitExitFullscreen) { document.webkitExitFullscreen(); }
     }
   }
+
+  let fadeTimer = null;
+  function triggerActivity() {
+    const modal = document.getElementById('full-player-modal');
+    if (document.fullscreenElement || document.webkitFullscreenElement) {
+      modal.classList.add('active-user');
+      clearTimeout(fadeTimer);
+      fadeTimer = setTimeout(() => {
+        modal.classList.remove('active-user');
+      }, 3000);
+    }
+  }
+
+  const modalElem = document.getElementById('full-player-modal');
+  modalElem.addEventListener('mousemove', triggerActivity);
+  modalElem.addEventListener('mousedown', triggerActivity);
+  modalElem.addEventListener('touchstart', triggerActivity, { passive: true });
+  modalElem.addEventListener('keydown', triggerActivity);
+
+  function checkFullscreen() {
+    const modal = document.getElementById('full-player-modal');
+    if (document.fullscreenElement || document.webkitFullscreenElement) {
+      triggerActivity();
+    } else {
+      modal.classList.remove('active-user');
+    }
+  }
+
+  document.addEventListener('fullscreenchange', checkFullscreen);
+  document.addEventListener('webkitfullscreenchange', checkFullscreen);
 
   function toggleHeroInfo() {
     openDetailsModal(currentSelectedMovie);
