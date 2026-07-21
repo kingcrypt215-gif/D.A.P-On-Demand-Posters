@@ -434,7 +434,7 @@
       display: block;
     }
 
-    /* Transparent Click-Catcher Shield Overlay: Intercepts clicks over the iframe so touch/mouse interactions wake up the controls */
+    /* Transparent Click-Catcher Shield Overlay */
     #click-shield {
       position: absolute;
       top: 0; left: 0;
@@ -452,7 +452,7 @@
       pointer-events: none;
     }
 
-    /* Transient Fullscreen Controls Overlay (Fades out when inactive, fades in on user activity) */
+    /* Transient Fullscreen Controls Overlay (Play/Pause, Prev, Next, Volume, Fullscreen) */
     .fs-transient-controls {
       position: absolute;
       bottom: 25px;
@@ -460,8 +460,13 @@
       transform: translateX(-50%);
       z-index: 2147483647;
       display: flex;
-      gap: 12px;
+      gap: 10px;
       align-items: center;
+      background: rgba(10, 10, 10, 0.85);
+      padding: 12px 20px;
+      border-radius: 8px;
+      border: 2px solid #FFD700;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.9);
       opacity: 0;
       visibility: hidden;
       transition: opacity 0.4s ease-in-out, visibility 0.4s ease-in-out;
@@ -474,18 +479,25 @@
     }
 
     .fs-control-btn {
-      background: #FFD700 !important;
-      color: #000 !important;
+      background: #FFD700;
+      color: #000;
       border: none;
-      padding: 10px 20px;
+      padding: 8px 14px;
       cursor: pointer;
       font-weight: bold;
       border-radius: 4px;
-      font-size: 14px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.8);
-      transition: background 0.2s;
+      font-size: 13px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.8);
+      transition: background 0.2s, transform 0.1s;
+      white-space: nowrap;
     }
-    .fs-control-btn:hover { background: #fff !important; }
+    .fs-control-btn:hover { background: #fff; transform: scale(1.03); }
+
+    .fs-volume-slider {
+      width: 80px;
+      accent-color: #FFD700;
+      cursor: pointer;
+    }
 
     /* Auto-hide header in native fullscreen unless active user */
     :fullscreen #full-player-header,
@@ -587,8 +599,12 @@
     <div id="fs-permanent-branding">D.A.P ON-DEMAND</div>
     <div id="click-shield"></div>
     <div class="fs-transient-controls">
-      <button class="fs-control-btn" onclick="toggleFullScreen()">EXIT FULLSCREEN</button>
-      <button class="fs-control-btn" onclick="closeFullFeature()">CLOSE PLAYER</button>
+      <button class="fs-control-btn" onclick="navMovie(-1)">⏮ PREV</button>
+      <button class="fs-control-btn" id="fs-play-pause-btn" onclick="togglePlayPause()">⏸ PAUSE</button>
+      <button class="fs-control-btn" onclick="navMovie(1)">NEXT ⏭</button>
+      <input type="range" class="fs-volume-slider" min="0" max="100" value="100" oninput="adjustVolume(this.value)" title="Volume">
+      <button class="fs-control-btn" onclick="toggleFullScreen()">⛶ FULLSCREEN</button>
+      <button class="fs-control-btn" onclick="closeFullFeature()">✕ EXIT</button>
     </div>
     <iframe id="full-player-iframe" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
   </div>
@@ -699,6 +715,8 @@
   });
 
   let currentSelectedMovie = allMovies[0];
+  let activeMovieIndex = 0;
+  let isPlaying = true;
 
   function renderCategories() {
     const container = document.getElementById('categories-container');
@@ -754,6 +772,7 @@
 
   function openDetailsModal(movie) {
     currentSelectedMovie = movie;
+    activeMovieIndex = allMovies.findIndex(m => m.name === movie.name);
     selectMovieForPreview(movie);
 
     document.getElementById('details-modal-img').src = movie.poster;
@@ -811,11 +830,14 @@
     const titleElem = document.getElementById('full-player-title');
     const modalIframe = document.getElementById('full-player-iframe');
 
+    activeMovieIndex = allMovies.findIndex(m => m.name === currentSelectedMovie.name);
     const fullText = `D.A.P ON-DEMAND: ${titleText}   &bull;   `;
     titleElem.innerHTML = fullText + fullText;
 
     modalIframe.src = `https://www.dailymotion.com/embed/video/${videoId}?autoplay=1&mute=0&controls=1&queue-enable=0&sharing-enable=0&related-video=0`;
     modal.style.display = 'flex';
+    isPlaying = true;
+    document.getElementById('fs-play-pause-btn').innerText = "⏸ PAUSE";
   }
 
   function closeFullFeature() {
@@ -843,6 +865,37 @@
     }
   }
 
+  function togglePlayPause() {
+    const iframe = document.getElementById('full-player-iframe');
+    const btn = document.getElementById('fs-play-pause-btn');
+    // Toggle player state command via postMessage or reload if iframe restriction applies
+    isPlaying = !isPlaying;
+    if (isPlaying) {
+      btn.innerText = "⏸ PAUSE";
+      iframe.contentWindow.postMessage('{"command":"play"}', '*');
+    } else {
+      btn.innerText = "▶ PLAY";
+      iframe.contentWindow.postMessage('{"command":"pause"}', '*');
+    }
+  }
+
+  function adjustVolume(val) {
+    const iframe = document.getElementById('full-player-iframe');
+    let vol = val / 100;
+    iframe.contentWindow.postMessage(JSON.stringify({command: 'volume', value: vol}), '*');
+  }
+
+  function navMovie(direction) {
+    activeMovieIndex = (activeMovieIndex + direction + allMovies.length) % allMovies.length;
+    let nextMovie = allMovies[activeMovieIndex];
+    if (nextMovie.active && nextMovie.id) {
+      currentSelectedMovie = nextMovie;
+      playVideoId(nextMovie.id, nextMovie.name);
+    } else {
+      navMovie(direction); // Skip inactive placeholder items automatically
+    }
+  }
+
   let fadeTimer = null;
   function triggerActivity() {
     const modal = document.getElementById('full-player-modal');
@@ -851,7 +904,7 @@
       clearTimeout(fadeTimer);
       fadeTimer = setTimeout(() => {
         modal.classList.remove('active-user');
-      }, 3500);
+      }, 4000);
     }
   }
 
