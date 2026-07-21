@@ -157,6 +157,117 @@
       background: #141414;
     }
 
+    /* Details / Pre-Play Modal Box */
+    #details-modal {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      z-index: 99998;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      padding: 15px;
+      box-sizing: border-box;
+    }
+
+    .details-content-box {
+      background: #181818;
+      border: 2px solid #FFD700;
+      border-radius: 8px;
+      max-width: 500px;
+      width: 100%;
+      overflow: hidden;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.8);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .details-poster-banner {
+      width: 100%;
+      aspect-ratio: 16/9;
+      object-fit: cover;
+      background: #111;
+    }
+
+    .details-text-area {
+      padding: 20px;
+    }
+
+    #details-modal-title {
+      color: #FFD700;
+      font-size: 22px;
+      font-weight: bold;
+      margin: 0 0 10px 0;
+    }
+
+    #details-modal-desc {
+      color: #ccc;
+      font-size: 14px;
+      line-height: 1.5;
+      margin: 0 0 20px 0;
+    }
+
+    .details-btn-row {
+      display: flex;
+      gap: 12px;
+    }
+
+    .watch-now-btn {
+      background: #FFD700;
+      color: #000;
+      border: none;
+      padding: 12px 24px;
+      font-weight: bold;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 15px;
+      flex-grow: 1;
+      text-align: center;
+    }
+    .watch-now-btn:hover { background: #fff; }
+
+    .close-details-btn {
+      background: #333;
+      color: #fff;
+      border: 1px solid #555;
+      padding: 12px 18px;
+      font-weight: bold;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .close-details-btn:hover { background: #444; }
+
+    /* Episode Selector inside Details Modal for Series */
+    #details-episode-container {
+      margin-top: 10px;
+      display: none;
+    }
+
+    #details-episode-container h4 {
+      color: #FFD700;
+      margin: 0 0 8px 0;
+      font-size: 14px;
+    }
+
+    .details-ep-btn {
+      display: block;
+      width: 100%;
+      background: #252525;
+      color: #fff;
+      border: 1px solid #444;
+      padding: 10px;
+      margin: 6px 0;
+      font-weight: bold;
+      border-radius: 4px;
+      cursor: pointer;
+      text-align: left;
+    }
+    .details-ep-btn:hover {
+      background: #FFD700;
+      color: #000;
+      border-color: #FFD700;
+    }
+
     /* Fullscreen Modal View for Playing Full Movie */
     #full-player-modal {
       position: fixed;
@@ -208,43 +319,6 @@
       top: 0; left: 0; width: 100%; height: 100%;
       border: none;
     }
-
-    /* Episode Selector Overlay for Series */
-    #episode-selector {
-      position: relative;
-      z-index: 10;
-      background: rgba(20, 20, 20, 0.95);
-      border: 2px solid #FFD700;
-      padding: 30px;
-      border-radius: 8px;
-      text-align: center;
-      max-width: 400px;
-      width: 90%;
-      display: none;
-    }
-
-    #episode-selector h3 {
-      color: #FFD700;
-      margin-top: 0;
-    }
-
-    .ep-btn {
-      display: block;
-      width: 100%;
-      background: #333;
-      color: #fff;
-      border: 1px solid #555;
-      padding: 12px;
-      margin: 10px 0;
-      font-weight: bold;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-    .ep-btn:hover {
-      background: #FFD700;
-      color: #000;
-      border-color: #FFD700;
-    }
   </style>
 </head>
 <body>
@@ -273,6 +347,27 @@
   </div>
 </div>
 
+<!-- Details / Pre-Play Modal -->
+<div id="details-modal">
+  <div class="details-content-box">
+    <img id="details-modal-img" class="details-poster-banner" src="" alt="Poster">
+    <div class="details-text-area">
+      <h3 id="details-modal-title">Title</h3>
+      <p id="details-modal-desc">Description goes here...</p>
+      
+      <div id="details-episode-container">
+        <h4>Select Episode:</h4>
+        <div id="details-episode-list"></div>
+      </div>
+
+      <div class="details-btn-row" id="details-main-action-row">
+        <button class="watch-now-btn" onclick="openFullFeature()">▶ Watch Now</button>
+        <button class="close-details-btn" onclick="closeDetailsModal()">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- Fullscreen Feature Player Modal -->
 <div id="full-player-modal">
   <div id="full-player-header">
@@ -280,12 +375,7 @@
     <button class="close-modal-btn" onclick="closeFullFeature()">CLOSE ✕</button>
   </div>
   <div id="full-player-body">
-    <!-- Episode Selector Box -->
-    <div id="episode-selector">
-      <h3>Select Episode</h3>
-      <div id="episode-list"></div>
-    </div>
-    <iframe id="full-player-iframe" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen style="display:none;"></iframe>
+    <iframe id="full-player-iframe" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
   </div>
 </div>
 
@@ -368,11 +458,8 @@
     vodLibrary.forEach((movie) => {
       let card = document.createElement('div');
       card.className = 'poster-card';
-      // Clicking a poster now instantly updates preview AND opens the player/series selector right away!
-      card.onclick = () => {
-        selectMovieForPreview(movie);
-        handlePlayButton();
-      };
+      // Clicking a poster now opens the Details Modal instead of automatically launching playback
+      card.onclick = () => openDetailsModal(movie);
 
       card.innerHTML = `
         <div class="poster-img-wrap">
@@ -401,42 +488,68 @@
     }
   }
 
+  function openDetailsModal(movie) {
+    currentSelectedMovie = movie;
+    selectMovieForPreview(movie); // Updates the background preview subtly too
+
+    document.getElementById('details-modal-img').src = movie.poster;
+    document.getElementById('details-modal-title').innerText = movie.name;
+    document.getElementById('details-modal-desc').innerText = movie.desc;
+
+    const epContainer = document.getElementById('details-episode-container');
+    const epList = document.getElementById('details-episode-list');
+    const mainActionRow = document.getElementById('details-main-action-row');
+
+    if (movie.isSeries) {
+      epContainer.style.display = "block";
+      mainActionRow.style.display = "none"; // Hide standard play button for series, show episodes instead
+      epList.innerHTML = "";
+
+      movie.episodes.forEach(ep => {
+        let epBtn = document.createElement('button');
+        epBtn.className = 'details-ep-btn';
+        epBtn.innerText = `▶ Play ${ep.title}`;
+        epBtn.onclick = () => {
+          closeDetailsModal();
+          playVideoId(ep.id, movie.name + " - " + ep.title);
+        };
+        epList.appendChild(epBtn);
+      });
+    } else {
+      epContainer.style.display = "none";
+      mainActionRow.style.display = "flex";
+    }
+
+    document.getElementById('details-modal').style.display = 'flex';
+  }
+
+  function closeDetailsModal() {
+    document.getElementById('details-modal').style.display = 'none';
+  }
+
   function handlePlayButton() {
-    if (!currentSelectedMovie.active || (!currentSelectedMovie.id && !currentSelectedMovie.isSeries)) {
+    // Used by the main hero banner play button
+    openDetailsModal(currentSelectedMovie);
+  }
+
+  function openFullFeature() {
+    closeDetailsModal();
+
+    if (!currentSelectedMovie.active || !currentSelectedMovie.id) {
       alert("This title's full feature link is coming soon!");
       return;
     }
 
+    playVideoId(currentSelectedMovie.id, currentSelectedMovie.name);
+  }
+
+  function playVideoId(videoId, titleText) {
     const modal = document.getElementById('full-player-modal');
     const modalTitle = document.getElementById('full-player-title');
     const modalIframe = document.getElementById('full-player-iframe');
-    const selector = document.getElementById('episode-selector');
-    const episodeList = document.getElementById('episode-list');
 
-    modalTitle.innerText = "Now Playing: " + currentSelectedMovie.name;
-
-    if (currentSelectedMovie.isSeries) {
-      modalIframe.style.display = "none";
-      selector.style.display = "block";
-      episodeList.innerHTML = "";
-
-      currentSelectedMovie.episodes.forEach(ep => {
-        let btn = document.createElement('button');
-        btn.className = 'ep-btn';
-        btn.innerText = ep.title;
-        btn.onclick = () => {
-          selector.style.display = "none";
-          modalIframe.style.display = "block";
-          modalIframe.src = `https://www.dailymotion.com/embed/video/${ep.id}?autoplay=1&mute=0&controls=1&queue-enable=0&sharing-enable=0&related-video=0`;
-        };
-        episodeList.appendChild(btn);
-      });
-    } else {
-      selector.style.display = "none";
-      modalIframe.style.display = "block";
-      modalIframe.src = `https://www.dailymotion.com/embed/video/${currentSelectedMovie.id}?autoplay=1&mute=0&controls=1&queue-enable=0&sharing-enable=0&related-video=0`;
-    }
-    
+    modalTitle.innerText = "Now Playing: " + titleText;
+    modalIframe.src = `https://www.dailymotion.com/embed/video/${videoId}?autoplay=1&mute=0&controls=1&queue-enable=0&sharing-enable=0&related-video=0`;
     modal.style.display = 'flex';
   }
 
@@ -449,7 +562,7 @@
   }
 
   function toggleHeroInfo() {
-    alert(currentSelectedMovie.name + "\n\n" + currentSelectedMovie.desc);
+    openDetailsModal(currentSelectedMovie);
   }
 
   renderCatalog();
