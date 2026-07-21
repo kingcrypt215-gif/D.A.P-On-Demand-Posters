@@ -442,7 +442,7 @@
       transition: height 0.4s ease-in-out;
     }
 
-    /* Permanent top-left watermark badge visible only in native fullscreen mode */
+    /* Permanent clean & minimalist top-left watermark badge in native fullscreen mode */
     #fs-permanent-branding {
       position: absolute;
       top: 15px;
@@ -450,18 +450,22 @@
       z-index: 2147483647;
       color: #FFD700;
       font-weight: bold;
-      font-size: 15px;
+      font-size: clamp(13px, 2.5vw, 16px);
       letter-spacing: 1px;
       text-shadow: 2px 2px 6px #000, 0 0 4px #000;
       display: none;
       pointer-events: none;
+      background: transparent;
+      padding: 0;
+      backdrop-filter: none;
     }
     :fullscreen #fs-permanent-branding,
-    :-webkit-full-screen #fs-permanent-branding {
+    :-webkit-full-screen #fs-permanent-branding,
+    :-ms-fullscreen #fs-permanent-branding {
       display: block;
     }
 
-    /* Transparent Click-Catcher Shield Overlay in Native Fullscreen */
+    /* Universal multi-device touch wrapper / click shield overlay */
     #click-shield {
       position: absolute;
       top: 0; left: 0;
@@ -469,17 +473,20 @@
       z-index: 2147483645;
       background: transparent;
       display: none;
+      touch-action: manipulation;
     }
     :fullscreen #click-shield,
-    :-webkit-full-screen #click-shield {
+    :-webkit-full-screen #click-shield,
+    :-ms-fullscreen #click-shield {
       display: block;
     }
     :fullscreen #full-player-modal.active-user #click-shield,
-    :-webkit-full-screen #full-player-modal.active-user #click-shield {
+    :-webkit-full-screen #full-player-modal.active-user #click-shield,
+    :-ms-fullscreen #full-player-modal.active-user #click-shield {
       pointer-events: none;
     }
 
-    /* Transient Fullscreen Controls Overlay (Gold Aesthetic) with Seekbar */
+    /* Transient Fullscreen Controls Overlay (Gold Aesthetic) with Seekbar & Volume */
     .fs-transient-controls {
       position: absolute;
       bottom: 25px;
@@ -500,10 +507,12 @@
       opacity: 0;
       visibility: hidden;
       transition: opacity 0.4s ease-in-out, visibility 0.4s ease-in-out;
+      touch-action: auto;
     }
 
     :fullscreen #full-player-modal.active-user .fs-transient-controls,
-    :-webkit-full-screen #full-player-modal.active-user .fs-transient-controls {
+    :-webkit-full-screen #full-player-modal.active-user .fs-transient-controls,
+    :-ms-fullscreen #full-player-modal.active-user .fs-transient-controls {
       opacity: 1;
       visibility: visible;
     }
@@ -562,10 +571,17 @@
       cursor: pointer;
     }
 
-    /* Native Fullscreen adjustments: Expand body to 100vh and keep header visible with watermark & controls */
+    /* Native Fullscreen adjustments: Expand body to 100vh and hide standard desktop header box */
     :fullscreen #full-player-body,
-    :-webkit-full-screen #full-player-body {
+    :-webkit-full-screen #full-player-body,
+    :-ms-fullscreen #full-player-body {
       height: 100vh;
+    }
+
+    :fullscreen #full-player-header,
+    :-webkit-full-screen #full-player-header,
+    :-ms-fullscreen #full-player-header {
+      display: none;
     }
 
     #full-player-iframe {
@@ -658,7 +674,7 @@
           <span>VOL:</span>
           <input type="range" class="fs-volume-slider" min="0" max="100" value="100" oninput="adjustVolume(this.value)" title="Volume Slider">
         </div>
-        <button class="fs-gold-btn" onclick="toggleFullScreen()">⛶ EXIT FULLSCREEN</button>
+        <button class="fs-gold-btn" onclick="toggleFullScreen()">⛶ EXIT</button>
       </div>
       <div class="fs-seekbar-wrap">
         <span id="fs-current-time">0:00</span>
@@ -907,11 +923,7 @@
 
   function playVideoId(videoId, titleText) {
     const modal = document.getElementById('full-player-modal');
-    const titleElem = document.getElementById('full-player-title');
     const modalIframe = document.getElementById('full-player-iframe');
-
-    const fullText = `D.A.P ON-DEMAND: ${titleText}   &bull;   `;
-    titleElem.innerHTML = fullText + fullText;
 
     modalIframe.src = `https://www.dailymotion.com/embed/video/${videoId}?autoplay=1&mute=0&controls=1&queue-enable=0&sharing-enable=0&related-video=0`;
     modal.style.display = 'flex';
@@ -927,9 +939,10 @@
     const modal = document.getElementById('full-player-modal');
     const modalIframe = document.getElementById('full-player-iframe');
     
-    if (document.fullscreenElement || document.webkitFullscreenElement) {
+    if (document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement) {
       if (document.exitFullscreen) { document.exitFullscreen(); }
       else if (document.webkitExitFullscreen) { document.webkitExitFullscreen(); }
+      else if (document.msExitFullscreen) { document.msExitFullscreen(); }
     }
 
     modalIframe.src = "";
@@ -939,12 +952,14 @@
 
   function toggleFullScreen() {
     const modal = document.getElementById('full-player-modal');
-    if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+    if (!document.fullscreenElement && !document.webkitFullscreenElement && !document.msFullscreenElement) {
       if (modal.requestFullscreen) { modal.requestFullscreen(); }
       else if (modal.webkitRequestFullscreen) { modal.webkitRequestFullscreen(); }
+      else if (modal.msRequestFullscreen) { modal.msRequestFullscreen(); }
     } else {
       if (document.exitFullscreen) { document.exitFullscreen(); }
       else if (document.webkitExitFullscreen) { document.webkitExitFullscreen(); }
+      else if (document.msExitFullscreen) { document.msExitFullscreen(); }
     }
   }
 
@@ -1011,17 +1026,17 @@
     }, 4000);
   }
 
-  const modalElem = document.getElementById('full-player-modal');
   const clickShield = document.getElementById('click-shield');
 
-  clickShield.addEventListener('mousemove', triggerActivity);
-  clickShield.addEventListener('mousedown', triggerActivity);
+  clickShield.addEventListener('mousemove', triggerActivity, { passive: true });
+  clickShield.addEventListener('mousedown', triggerActivity, { passive: true });
   clickShield.addEventListener('touchstart', triggerActivity, { passive: true });
+  clickShield.addEventListener('click', triggerActivity, { passive: true });
   document.addEventListener('keydown', triggerActivity);
 
   function checkFullscreen() {
     const modal = document.getElementById('full-player-modal');
-    if (document.fullscreenElement || document.webkitFullscreenElement) {
+    if (document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement) {
       triggerActivity();
     } else {
       modal.classList.remove('active-user');
@@ -1030,6 +1045,7 @@
 
   document.addEventListener('fullscreenchange', checkFullscreen);
   document.addEventListener('webkitfullscreenchange', checkFullscreen);
+  document.addEventListener('msfullscreenchange', checkFullscreen);
 
   function toggleHeroInfo() {
     openDetailsModal(currentSelectedMovie);
