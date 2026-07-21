@@ -290,10 +290,10 @@
       border-color: #FFD700;
     }
 
-    /* Custom D.A.P On-Demand Player Shell Modal */
+    /* Custom D.A.P On-Demand Fullscreen Player Overlay with Continuous Title Marquee */
     #full-player-modal {
       position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
+      top: 0; left: 0; width: 100vw; height: 100vh;
       background: #000;
       z-index: 999999;
       display: none;
@@ -310,14 +310,18 @@
       align-items: center;
       border-bottom: 3px solid #FFD700;
       box-shadow: 0 4px 20px rgba(0,0,0,0.8);
-      z-index: 10;
+      z-index: 2147483647;
       box-sizing: border-box;
+      position: relative;
     }
 
     .dap-player-brand {
       display: flex;
       align-items: center;
       gap: 12px;
+      overflow: hidden;
+      flex-grow: 1;
+      margin-right: 20px;
     }
 
     .dap-live-dot {
@@ -327,12 +331,28 @@
       border-radius: 50%;
       box-shadow: 0 0 10px #FFD700;
       animation: pulse 2s infinite;
+      flex-shrink: 0;
     }
 
     @keyframes pulse {
       0% { opacity: 0.6; transform: scale(0.95); }
       50% { opacity: 1; transform: scale(1.05); }
       100% { opacity: 0.6; transform: scale(0.95); }
+    }
+
+    /* Marquee Container for Full Title Display */
+    .title-marquee-container {
+      overflow: hidden;
+      white-space: nowrap;
+      width: 100%;
+      display: flex;
+      align-items: center;
+    }
+
+    .title-marquee-track {
+      display: inline-block;
+      white-space: nowrap;
+      animation: scrollMarquee 12s linear infinite;
     }
 
     #full-player-title {
@@ -342,6 +362,13 @@
       letter-spacing: 1px;
       text-transform: uppercase;
       text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+      display: inline-block;
+      padding-right: 50px;
+    }
+
+    @keyframes scrollMarquee {
+      0% { transform: translateX(0%); }
+      100% { transform: translateX(-50%); }
     }
 
     .close-modal-btn {
@@ -356,12 +383,13 @@
       letter-spacing: 0.5px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.5);
       transition: background 0.2s, transform 0.1s;
+      flex-shrink: 0;
     }
     .close-modal-btn:hover { background: #fff; transform: scale(1.02); }
 
     #full-player-body {
       position: relative;
-      width: 100%;
+      width: 100vw;
       height: calc(100vh - 60px);
       background: #000;
       overflow: hidden;
@@ -375,6 +403,7 @@
       border: none;
       background: #000;
       pointer-events: auto;
+      z-index: 2147483646;
     }
 
     @keyframes fadeIn {
@@ -429,12 +458,16 @@
   </div>
 </div>
 
-<!-- Custom D.A.P On-Demand Theater Player Modal -->
+<!-- Custom D.A.P On-Demand Fullscreen Theater Player Modal -->
 <div id="full-player-modal">
   <div id="full-player-header">
     <div class="dap-player-brand">
       <div class="dap-live-dot"></div>
-      <span id="full-player-title">D.A.P ON-DEMAND</span>
+      <div class="title-marquee-container">
+        <div class="title-marquee-track">
+          <span id="full-player-title">D.A.P ON-DEMAND</span>
+        </div>
+      </div>
     </div>
     <button class="close-modal-btn" onclick="closeFullFeature()">CLOSE ✕</button>
   </div>
@@ -657,10 +690,13 @@
 
   function playVideoId(videoId, titleText) {
     const modal = document.getElementById('full-player-modal');
-    const modalTitle = document.getElementById('full-player-title');
+    const titleElem = document.getElementById('full-player-title');
     const modalIframe = document.getElementById('full-player-iframe');
 
-    modalTitle.innerText = "D.A.P ON-DEMAND: " + titleText;
+    // Duplicate text so the marquee loops seamlessly without jumping
+    const fullText = `D.A.P ON-DEMAND: ${titleText}   &bull;   `;
+    titleElem.innerHTML = fullText + fullText;
+
     modalIframe.src = `https://www.dailymotion.com/embed/video/${videoId}?autoplay=1&mute=0&controls=1&queue-enable=0&sharing-enable=0&related-video=0`;
     modal.style.display = 'flex';
   }
