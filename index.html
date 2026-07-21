@@ -287,7 +287,7 @@
       border-color: #FFD700;
     }
 
-    /* Fullscreen Modal View for Playing Full Movie */
+    /* Custom D.A.P Player Shell Modal */
     #full-player-modal {
       position: fixed;
       top: 0; left: 0; width: 100%; height: 100%;
@@ -298,29 +298,48 @@
     }
 
     #full-player-header {
-      background: #111;
-      padding: 12px 20px;
+      background: #0a0a0a;
+      padding: 14px 20px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       border-bottom: 2px solid #FFD700;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    }
+
+    .dap-player-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .dap-live-dot {
+      width: 10px;
+      height: 10px;
+      background: #FFD700;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #FFD700;
     }
 
     #full-player-title {
       color: #FFD700;
       font-weight: bold;
-      font-size: 16px;
+      font-size: clamp(14px, 3vw, 18px);
+      letter-spacing: 0.5px;
     }
 
     .close-modal-btn {
       background: #FFD700;
       color: #000;
       border: none;
-      padding: 6px 14px;
+      padding: 8px 16px;
       font-weight: bold;
       border-radius: 4px;
       cursor: pointer;
+      font-size: 13px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
     }
+    .close-modal-btn:hover { background: #fff; }
 
     #full-player-body {
       position: relative;
@@ -386,10 +405,13 @@
   </div>
 </div>
 
-<!-- Fullscreen Feature Player Modal -->
+<!-- Custom D.A.P Player Shell Modal -->
 <div id="full-player-modal">
   <div id="full-player-header">
-    <span id="full-player-title">Now Playing</span>
+    <div class="dap-player-brand">
+      <div class="dap-live-dot"></div>
+      <span id="full-player-title">D.A.P TV STREAMING</span>
+    </div>
     <button class="close-modal-btn" onclick="closeFullFeature()">CLOSE ✕</button>
   </div>
   <div id="full-player-body">
@@ -496,7 +518,6 @@
     }
   ];
 
-  // Flattened array to easily reference current movie globally
   let allMovies = [];
   categoriesData.forEach(cat => {
     cat.titles.forEach(movie => allMovies.push(movie));
@@ -615,7 +636,7 @@
     const modalTitle = document.getElementById('full-player-title');
     const modalIframe = document.getElementById('full-player-iframe');
 
-    modalTitle.innerText = "Now Playing: " + titleText;
+    modalTitle.innerText = "D.A.P TV: " + titleText;
     modalIframe.src = `https://www.dailymotion.com/embed/video/${videoId}?autoplay=1&mute=0&controls=1&queue-enable=0&sharing-enable=0&related-video=0`;
     modal.style.display = 'flex';
   }
