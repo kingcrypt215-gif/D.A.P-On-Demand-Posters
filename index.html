@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <title>D.A.P On-Demand</title>
+  <!-- Step 1: Added Dailymotion Player SDK -->
+  <script src="https://geo.dailymotion.com/libs/player/xsdk.js"></script>
   <style>
     body { background: #000; color: #fff; font-family: sans-serif; margin: 0; overflow-x: hidden; }
     #brand { text-align: center; color: #FFD700; font-size: clamp(18px, 4vw, 24px); font-weight: bold; padding: 10px; letter-spacing: 1px; }
@@ -490,14 +492,15 @@
       display: flex;
       gap: 12px;
       align-items: center;
-      background: rgba(10, 10, 10, 0.9);
       padding: 12px 22px;
       border-radius: 8px;
-      border: 2px solid #FFD700;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.9);
       opacity: 0;
       visibility: hidden;
       transition: opacity 0.4s ease-in-out, visibility 0.4s ease-in-out;
+      /* Step 3 CSS Additions & Overrides */
+      background: rgba(0,0,0,.88);
+      border: 2px solid #FFD700;
+      box-shadow: 0 0 15px rgba(255,215,0,.35);
     }
 
     :fullscreen #full-player-modal.active-user .fs-transient-controls,
@@ -506,11 +509,19 @@
       visibility: visible;
     }
 
+    /* Step 3 CSS Additions */
+    .fs-time-display {
+      color: #FFD700;
+      font-weight: bold;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
     .fs-gold-btn {
-      background: #FFD700;
-      color: #000;
-      border: none;
-      padding: 9px 16px;
+      background: #000;
+      color: #FFD700;
+      border: 1px solid #FFD700;
+      padding: 10px 16px;
       cursor: pointer;
       font-weight: bold;
       border-radius: 4px;
@@ -519,7 +530,11 @@
       transition: background 0.2s, transform 0.1s;
       white-space: nowrap;
     }
-    .fs-gold-btn:hover { background: #fff; transform: scale(1.03); }
+    .fs-gold-btn:hover {
+      background: #FFD700;
+      color: #000;
+      transform: scale(1.03);
+    }
 
     .fs-volume-wrap {
       display: flex;
@@ -636,14 +651,41 @@
   <div id="full-player-body">
     <div id="fs-permanent-branding">D.A.P ON-DEMAND</div>
     <div id="click-shield"></div>
+    
+    <!-- Step 2: Updated Fullscreen Control Block -->
     <div class="fs-transient-controls">
-      <button class="fs-gold-btn" id="fs-play-pause-btn" onclick="togglePlayPause()">⏸ PAUSE</button>
-      <div class="fs-volume-wrap">
-        <span>VOL:</span>
-        <input type="range" class="fs-volume-slider" min="0" max="100" value="100" oninput="adjustVolume(this.value)" title="Volume Slider">
+      <button class="fs-gold-btn" onclick="seekBackward()">
+        ⏪ 10
+      </button>
+      <button class="fs-gold-btn" id="fs-play-pause-btn" onclick="togglePlayPause()">
+        ▶ PLAY
+      </button>
+      <button class="fs-gold-btn" onclick="seekForward()">
+        10 ⏩
+      </button>
+      <div class="fs-time-display">
+        <span id="current-time">0:00</span>
+        /
+        <span id="duration-time">0:00</span>
       </div>
-      <button class="fs-gold-btn" onclick="toggleFullScreen()">⛶ EXIT FULLSCREEN</button>
+      <div class="fs-volume-wrap">
+        <button class="fs-gold-btn" onclick="toggleMute()" id="mute-btn">
+          🔊
+        </button>
+        <input
+          type="range"
+          class="fs-volume-slider"
+          min="0"
+          max="100"
+          value="100"
+          oninput="adjustVolume(this.value)"
+        >
+      </div> 
+      <button class="fs-gold-btn" onclick="toggleFullScreen()">
+        ⛶ EXIT
+      </button>
     </div>
+
     <iframe id="full-player-iframe" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
   </div>
 </div>
@@ -753,7 +795,6 @@
   });
 
   let currentSelectedMovie = allMovies[0];
-  let isPlaying = true;
   let isHeroMuted = true;
 
   function renderCategories() {
@@ -881,18 +922,30 @@
     playVideoId(currentSelectedMovie.id, currentSelectedMovie.name);
   }
 
+  // Step 4: Replaced playVideoId Function & Player Variable Setup
+  let dapPlayer = null;
   function playVideoId(videoId, titleText) {
-    const modal = document.getElementById('full-player-modal');
-    const titleElem = document.getElementById('full-player-title');
-    const modalIframe = document.getElementById('full-player-iframe');
+    const modal = document.getElementById("full-player-modal");
+    const iframe = document.getElementById("full-player-iframe");
 
-    const fullText = `D.A.P ON-DEMAND: ${titleText}   &bull;   `;
-    titleElem.innerHTML = fullText + fullText;
+    document.getElementById("full-player-title").innerText =
+      "D.A.P ON-DEMAND: " + titleText;
 
-    modalIframe.src = `https://www.dailymotion.com/embed/video/${videoId}?autoplay=1&mute=0&controls=1&queue-enable=0&sharing-enable=0&related-video=0`;
-    modal.style.display = 'flex';
-    isPlaying = true;
-    document.getElementById('fs-play-pause-btn').innerText = "⏸ PAUSE";
+    iframe.src =
+      "https://geo.dailymotion.com/player/x" +
+      "?video=" + videoId +
+      "&autoplay=1";
+
+    modal.style.display = "flex";
+
+    iframe.onload = function() {
+      dapPlayer = new DM.player(iframe, {
+        video: videoId
+      });
+      dapPlayer.play();
+      dapPlayer.on("timeupdate", updateProgress);
+      dapPlayer.on("durationchange", updateDuration);
+    };
   }
 
   function closeFullFeature() {
@@ -907,6 +960,7 @@
     modalIframe.src = "";
     modal.style.display = 'none';
     modal.classList.remove('active-user');
+    dapPlayer = null;
   }
 
   function toggleFullScreen() {
@@ -920,23 +974,68 @@
     }
   }
 
+  // Step 5: Replaced togglePlayPause Function
   function togglePlayPause() {
-    const iframe = document.getElementById('full-player-iframe');
-    const btn = document.getElementById('fs-play-pause-btn');
-    isPlaying = !isPlaying;
-    if (isPlaying) {
-      btn.innerText = "⏸ PAUSE";
-      iframe.contentWindow.postMessage('{"command":"play"}', '*');
-    } else {
-      btn.innerText = "▶ PLAY";
-      iframe.contentWindow.postMessage('{"command":"pause"}', '*');
+    if (!dapPlayer) return;
+    dapPlayer.getPlayerState().then(state => {
+      if (state === "playing") {
+        dapPlayer.pause();
+        document.getElementById("fs-play-pause-btn").innerHTML = "▶ PLAY";
+      } else {
+        dapPlayer.play();
+        document.getElementById("fs-play-pause-btn").innerHTML = "⏸ PAUSE";
+      }
+    });
+  }
+
+  // Step 6: Added Seek, Volume, Mute, and Time Format Functions
+  function seekForward() {
+    if (dapPlayer) {
+      dapPlayer.getCurrentTime().then(currentTime => {
+        dapPlayer.seek(currentTime + 10);
+      });
     }
   }
 
-  function adjustVolume(val) {
-    const iframe = document.getElementById('full-player-iframe');
-    let vol = val / 100;
-    iframe.contentWindow.postMessage(JSON.stringify({command: 'volume', value: vol}), '*');
+  function seekBackward() {
+    if (dapPlayer) {
+      dapPlayer.getCurrentTime().then(currentTime => {
+        dapPlayer.seek(currentTime - 10);
+      });
+    }
+  }
+
+  function adjustVolume(value) {
+    if (dapPlayer) {
+      dapPlayer.setVolume(value / 100);
+    }
+  }
+
+  function toggleMute() {
+    if (dapPlayer) {
+      dapPlayer.toggleMute();
+    }
+  }
+
+  function updateProgress() {
+    if (!dapPlayer) return;
+    dapPlayer.getCurrentTime().then(time => {
+      document.getElementById("current-time").innerHTML = formatTime(time);
+    });
+  }
+
+  function updateDuration() {
+    if (!dapPlayer) return;
+    dapPlayer.getDuration().then(time => {
+      document.getElementById("duration-time").innerHTML = formatTime(time);
+    });
+  }
+
+  function formatTime(seconds) {
+    let min = Math.floor(seconds / 60);
+    let sec = Math.floor(seconds % 60);
+    if (sec < 10) sec = "0" + sec;
+    return min + ":" + sec;
   }
 
   let fadeTimer = null;
@@ -980,4 +1079,3 @@
 </script>
 </body>
 </html>
-
