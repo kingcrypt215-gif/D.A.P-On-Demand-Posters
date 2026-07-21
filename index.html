@@ -4,6 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <title>D.A.P On-Demand</title>
+
+  <!-- Official Dailymotion JavaScript SDK -->
+  <script src="https://api.dmcdn.net/all.js"></script>
+
   <style>
     body { background: #000; color: #fff; font-family: sans-serif; margin: 0; overflow-x: hidden; }
     #brand { text-align: center; color: #FFD700; font-size: clamp(18px, 4vw, 24px); font-weight: bold; padding: 10px; letter-spacing: 1px; }
@@ -549,6 +553,19 @@
     }
     .fs-volume-slider:focus { outline: 1px solid #FFD700; }
 
+    #full-player-container {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: #000;
+      z-index: 2147483644;
+    }
+    #full-player-container iframe {
+      width: 100% !important;
+      height: 100% !important;
+      border: none !important;
+    }
+
     @media (max-width: 600px) {
       .fs-transient-controls {
         flex-direction: row;
@@ -577,16 +594,6 @@
 
     :fullscreen #full-player-body,
     :-webkit-full-screen #full-player-body { height: 100vh; }
-
-    #full-player-iframe {
-      position: absolute;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      border: none;
-      background: #000;
-      pointer-events: auto;
-      z-index: 2147483644;
-    }
 
     @keyframes fadeIn {
       from { opacity: 0; }
@@ -680,7 +687,8 @@
       </div>
       <button class="fs-gold-btn" onclick="toggleFullScreen()">⛶ EXIT FULLSCREEN</button>
     </div>
-    <iframe id="full-player-iframe" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+    <!-- Container target initialized by Dailymotion JS SDK -->
+    <div id="full-player-container"></div>
   </div>
 </div>
 
@@ -788,8 +796,8 @@
     cat.titles.forEach(movie => allMovies.push(movie));
   });
 
-  let currentMovieIndex = 0;
   let currentSelectedMovie = allMovies[0];
+  let dmPlayer = null;
   let isPlaying = true;
   let isHeroMuted = true;
   let isPlayerMuted = false;
@@ -836,7 +844,6 @@
 
   function selectMovieForPreview(movie) {
     currentSelectedMovie = movie;
-    currentMovieIndex = allMovies.findIndex(m => m.name === movie.name);
     document.getElementById('hero-title').innerText = movie.name;
     document.getElementById('hero-desc').innerText = movie.desc;
 
@@ -924,7 +931,6 @@
   function playVideoId(videoId, titleText) {
     const modal = document.getElementById('full-player-modal');
     const titleElem = document.getElementById('full-player-title');
-    const modalIframe = document.getElementById('full-player-iframe');
 
     const fullText = `D.A.P ON-DEMAND: ${titleText}   &bull;   `;
     titleElem.innerHTML = fullText + fullText;
@@ -933,23 +939,73 @@
     videoDuration = 0;
     updateSeekUI();
 
-    modalIframe.src = `https://www.dailymotion.com/embed/video/${videoId}?autoplay=1&mute=0&controls=1&queue-enable=0&sharing-enable=0&related-video=0`;
     modal.style.display = 'flex';
     modal.focus();
+
+    if (dmPlayer) {
+      dmPlayer.load({
+        video: videoId,
+        autoplay: true
+      });
+    } else {
+      dmPlayer = DM.player(document.getElementById('full-player-container'), {
+        video: videoId,
+        width: "100%",
+        height: "100%",
+        params: {
+          autoplay: true,
+          mute: false,
+          controls: true,
+          'queue-enable': false,
+          'sharing-enable': false,
+          'related-video': 0
+        }
+      });
+
+      dmPlayer.addEventListener('timeupdate', function() {
+        if (dmPlayer.currentTime !== undefined) {
+          videoCurrentTime = dmPlayer.currentTime;
+        }
+        if (dmPlayer.duration !== undefined && dmPlayer.duration > 0) {
+          videoDuration = dmPlayer.duration;
+        }
+        updateSeekUI();
+      });
+
+      dmPlayer.addEventListener('durationchange', function() {
+        if (dmPlayer.duration !== undefined && dmPlayer.duration > 0) {
+          videoDuration = dmPlayer.duration;
+          updateSeekUI();
+        }
+      });
+
+      dmPlayer.addEventListener('play', function() {
+        isPlaying = true;
+        document.getElementById('fs-play-pause-btn').innerText = "⏸ PAUSE";
+      });
+
+      dmPlayer.addEventListener('pause', function() {
+        isPlaying = false;
+        document.getElementById('fs-play-pause-btn').innerText = "▶ PLAY";
+      });
+    }
+
     isPlaying = true;
     document.getElementById('fs-play-pause-btn').innerText = "⏸ PAUSE";
   }
 
   function closeFullFeature() {
     const modal = document.getElementById('full-player-modal');
-    const modalIframe = document.getElementById('full-player-iframe');
     
+    if (dmPlayer) {
+      dmPlayer.pause();
+    }
+
     if (document.fullscreenElement || document.webkitFullscreenElement) {
       if (document.exitFullscreen) { document.exitFullscreen(); }
       else if (document.webkitExitFullscreen) { document.webkitExitFullscreen(); }
     }
 
-    modalIframe.src = "";
     modal.style.display = 'none';
     modal.classList.remove('active-user');
   }
@@ -966,35 +1022,26 @@
   }
 
   function togglePlayPause() {
-    const iframe = document.getElementById('full-player-iframe');
-    const btn = document.getElementById('fs-play-pause-btn');
-    isPlaying = !isPlaying;
+    if (!dmPlayer) return;
     if (isPlaying) {
-      btn.innerText = "⏸ PAUSE";
-      iframe.contentWindow.postMessage('{"command":"play"}', '*');
+      dmPlayer.pause();
     } else {
-      btn.innerText = "▶ PLAY";
-      iframe.contentWindow.postMessage('{"command":"pause"}', '*');
+      dmPlayer.play();
     }
   }
 
   function togglePlayerMute() {
-    const iframe = document.getElementById('full-player-iframe');
-    const btn = document.getElementById('fs-mute-btn');
+    if (!dmPlayer) return;
     isPlayerMuted = !isPlayerMuted;
-    if (isPlayerMuted) {
-      btn.innerText = "🔇 MUTE";
-      iframe.contentWindow.postMessage('{"command":"mute"}', '*');
-    } else {
-      btn.innerText = "🔊 UNMUTE";
-      iframe.contentWindow.postMessage('{"command":"unmute"}', '*');
-    }
+    const btn = document.getElementById('fs-mute-btn');
+    btn.innerText = isPlayerMuted ? "🔇 MUTE" : "🔊 UNMUTE";
+    dmPlayer.setMuted(isPlayerMuted);
   }
 
   function adjustVolume(val) {
-    const iframe = document.getElementById('full-player-iframe');
+    if (!dmPlayer) return;
     let vol = val / 100;
-    iframe.contentWindow.postMessage(JSON.stringify({command: 'volume', value: vol}), '*');
+    dmPlayer.setVolume(vol);
   }
 
   function changeChannel(direction) {
@@ -1009,7 +1056,7 @@
     playVideoId(currentSelectedMovie.id, currentSelectedMovie.name);
   }
 
-  /* Seek & Transit Navigation Functions */
+  /* Seek & Timeline Control Functions */
   function formatTime(seconds) {
     if (isNaN(seconds) || seconds <= 0) return "00:00";
     const h = Math.floor(seconds / 3600);
@@ -1035,9 +1082,9 @@
   }
 
   function seekTo(val) {
-    const iframe = document.getElementById('full-player-iframe');
+    if (!dmPlayer) return;
     videoCurrentTime = parseFloat(val);
-    iframe.contentWindow.postMessage(JSON.stringify({ command: 'seek', value: videoCurrentTime }), '*');
+    dmPlayer.seek(videoCurrentTime);
     updateSeekUI();
   }
 
@@ -1057,20 +1104,6 @@
     isUserSeeking = false;
     seekTo(val);
   }
-
-  /* Listen to postMessages emitted by Dailymotion iframe player */
-  window.addEventListener('message', function(event) {
-    try {
-      const data = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
-      if (data) {
-        if (data.time !== undefined) videoCurrentTime = data.time;
-        if (data.duration !== undefined && data.duration > 0) videoDuration = data.duration;
-        updateSeekUI();
-      }
-    } catch (e) {
-      /* Ignore non-JSON post messages */
-    }
-  });
 
   let fadeTimer = null;
   function triggerActivity() {
