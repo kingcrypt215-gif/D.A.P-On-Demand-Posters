@@ -458,12 +458,17 @@
       background: transparent;
       padding: 0;
       backdrop-filter: none;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.4s ease-in-out, visibility 0.4s ease-in-out;
     }
 
-    :fullscreen #fs-permanent-branding,
-    :-webkit-full-screen #fs-permanent-branding,
-    :-ms-fullscreen #fs-permanent-branding {
+    :fullscreen #full-player-modal.active-user #fs-permanent-branding,
+    :-webkit-full-screen #full-player-modal.active-user #fs-permanent-branding,
+    :-ms-fullscreen #full-player-modal.active-user #fs-permanent-branding {
       display: block;
+      opacity: 1;
+      visibility: visible;
     }
 
     /* Universal multi-device touch wrapper / click shield overlay */
