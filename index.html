@@ -341,7 +341,6 @@
       z-index: 2147483647;
       box-sizing: border-box;
       position: relative;
-      transition: opacity 0.4s ease-in-out, visibility 0.4s ease-in-out;
     }
 
     .dap-player-brand {
@@ -480,7 +479,7 @@
       pointer-events: none;
     }
 
-    /* Transient Fullscreen Controls Overlay (Gold Aesthetic) for Complete Borderless Full Screen */
+    /* Transient Fullscreen Controls Overlay (Gold Aesthetic) - Always visible when active in native fullscreen */
     .fs-transient-controls {
       position: absolute;
       bottom: 25px;
@@ -490,7 +489,7 @@
       display: flex;
       gap: 12px;
       align-items: center;
-      background: rgba(10, 10, 10, 0.9);
+      background: rgba(10, 10, 10, 0.92);
       padding: 12px 22px;
       border-radius: 8px;
       border: 2px solid #FFD700;
@@ -536,18 +535,7 @@
       cursor: pointer;
     }
 
-    /* Auto-hide header in native fullscreen unless active user */
-    :fullscreen #full-player-header,
-    :-webkit-full-screen #full-player-header {
-      opacity: 0;
-      visibility: hidden;
-    }
-    :fullscreen #full-player-modal.active-user #full-player-header,
-    :-webkit-full-screen #full-player-modal.active-user #full-player-header {
-      opacity: 1;
-      visibility: visible;
-    }
-
+    /* Native Fullscreen adjustments: Expand body to 100vh and float transient bar on top */
     :fullscreen #full-player-body,
     :-webkit-full-screen #full-player-body {
       height: 100vh;
