@@ -78,12 +78,12 @@
       border-bottom: 3px solid #FFD700;
     }
 
-    #hero-iframe {
+    #hero-iframe, #hero-video {
       position: absolute;
       top: 0; left: 0;
       width: 100%; height: 100%;
       border: none;
-      pointer-events: auto;
+      object-fit: cover;
     }
 
     .hero-vignette {
@@ -614,7 +614,7 @@
       box-sizing: border-box;
       justify-content: center;
       max-width: 95vw;
-      flex-wrap: nowrap;
+      flex-wrap: wrap;
     }
 
     :fullscreen #full-player-modal.active-user .fs-transient-controls,
@@ -652,16 +652,60 @@
       outline: none;
     }
 
-    /* Universal Hide non-functional controls across Modal & Native Fullscreen */
-    .fs-transient-controls .fs-gold-btn[onclick*="skipTime"],
-    .fs-transient-controls #fs-play-pause-btn,
-    .fs-transient-controls #fs-mute-btn,
-    .fs-transient-controls .fs-seeker-wrap,
-    .fs-transient-controls .fs-volume-wrap {
+    .fs-seeker-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1 1 200px;
+      min-width: 180px;
+    }
+
+    .fs-seek-slider {
+      flex-grow: 1;
+      height: 8px;
+      accent-color: #FFD700;
+      cursor: pointer;
+      border-radius: 4px;
+      touch-action: none;
+    }
+
+    .fs-time-counter {
+      color: #FFD700;
+      font-size: clamp(11px, 1.4vw, 13px);
+      font-weight: bold;
+      font-family: monospace;
+      white-space: nowrap;
+      min-width: 85px;
+      text-align: center;
+    }
+
+    .fs-volume-wrap {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      color: #FFD700;
+      font-size: clamp(11px, 1.4vw, 13px);
+      font-weight: bold;
+    }
+
+    .fs-volume-slider {
+      width: clamp(50px, 8vw, 80px);
+      height: 6px;
+      accent-color: #FFD700;
+      cursor: pointer;
+      touch-action: none;
+    }
+
+    /* Dynamic Control Hiding Classes */
+    .fs-transient-controls.hide-custom-controls .fs-gold-btn[onclick*="skipTime"],
+    .fs-transient-controls.hide-custom-controls #fs-play-pause-btn,
+    .fs-transient-controls.hide-custom-controls #fs-mute-btn,
+    .fs-transient-controls.hide-custom-controls .fs-seeker-wrap,
+    .fs-transient-controls.hide-custom-controls .fs-volume-wrap {
       display: none !important;
     }
 
-    #full-player-iframe {
+    #full-player-iframe, #full-player-video {
       position: absolute;
       top: 0; left: 0;
       width: 100%; height: 100%;
@@ -669,6 +713,7 @@
       background: #000;
       pointer-events: auto;
       z-index: 2147483644;
+      object-fit: contain;
     }
 
     @media (max-width: 600px) {
@@ -679,6 +724,12 @@
       .fs-gold-btn {
         padding: 8px 14px;
       }
+      .fs-seeker-wrap {
+        order: -1;
+        width: 100%;
+        flex: 1 1 100%;
+      }
+      .fs-volume-wrap { display: none; }
     }
 
     :fullscreen #full-player-header,
@@ -711,7 +762,8 @@
 <!-- Netflix Style Hero Billboard Preview Player -->
 <div id="hero-container">
   <div class="hero-vignette"></div>
-  <iframe id="hero-iframe" title="Hero Preview" frameborder="0" allow="autoplay; encrypted-media"></iframe>
+  <iframe id="hero-iframe" title="Hero Preview Iframe" frameborder="0" allow="autoplay; encrypted-media"></iframe>
+  <video id="hero-video" title="Hero Preview Video" playsinline muted loop style="display:none;"></video>
   <div id="hero-content">
     <h1 id="hero-title">Select a Movie</h1>
     <p id="hero-desc">Click any movie poster below to preview a teaser clip right here, or click Play to watch the full feature.</p>
@@ -768,7 +820,7 @@
   <div id="full-player-body">
     <div id="fs-permanent-branding">D.A.P ON-DEMAND</div>
     <div id="click-shield"></div>
-    <div class="fs-transient-controls">
+    <div class="fs-transient-controls hide-custom-controls" id="fs-transient-controls">
       <!-- Channel Switchers & Play/Pause -->
       <button class="fs-gold-btn" tabindex="0" onclick="changeChannel(-1)" title="Previous Title">⏮ PREV</button>
       <button class="fs-gold-btn" tabindex="0" onclick="skipTime(-10)" title="Rewind 10s">⏮ -10s</button>
@@ -790,7 +842,8 @@
       </div>
       <button class="fs-gold-btn" tabindex="0" onclick="toggleFullScreen()">⛶ FULLSCREEN</button>
     </div>
-    <iframe id="full-player-iframe" title="Video Player Window" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+    <iframe id="full-player-iframe" title="Video Player Window" frameborder="0" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen style="display:none;"></iframe>
+    <video id="full-player-video" title="Video Player Window Direct" playsinline style="display:none;"></video>
   </div>
 </div>
 
@@ -827,14 +880,14 @@
     {
       categoryName: "Indie Animation Spotlight",
       titles: [
-        { name: "Sita Sings The Blues", id: "", poster: "Sita Sings The Blues.jpg", desc: "The greatest break-up story ever told. A film by Nina Paley.", clipStart: 0, clipEnd: 30, active: false },
-        { name: "Seder Masochism", id: "", poster: "SEDER MASOCHISM.jpg", desc: "A new animated musical from the creator of Sita Sings the Blues.", clipStart: 0, clipEnd: 30, active: false },
-        { name: "Elephant's Dream", id: "", poster: "Elephant's Dream.jpg", desc: "The Orange Open Movie Project presents Elephants Dream.", clipStart: 0, clipEnd: 30, active: false },
-        { name: "Sintel", id: "", poster: "SINTEL.jpg", desc: "An epic open movie fantasy adventure about a young girl and her dragon companion.", clipStart: 0, clipEnd: 30, active: false },
-        { name: "Caminandes", id: "", poster: "Caminandes.jpg", desc: "Winner of the Jerry Goldsmith Award for Best Score for an Animated Short Film.", clipStart: 0, clipEnd: 30, active: false },
-        { name: "Wing It!", id: "", poster: "WING IT!.jpg", desc: "A Pet Project featuring pet-powered engineering and blueprint animation.", clipStart: 0, clipEnd: 30, active: false },
-        { name: "Singularity", id: "", poster: "SINGULARITY.jpg", desc: "Sci-fi visual art and conceptual masterpiece exploring cybernetic evolution.", clipStart: 0, clipEnd: 30, active: false },
-        { name: "Alike", id: "", poster: "Alike.jpg", desc: "Directed by Daniel Martínez Lara & Rafa Cano Méndez. A touching animated short.", clipStart: 0, clipEnd: 30, active: false }
+        { name: "Sita Sings The Blues", id: "https://archive.org/download/Sita_Sings_the_Blues/Sita_Sings_the_Blues_1080p.mp4", poster: "Sita Sings The Blues.jpg", desc: "The greatest break-up story ever told. A film by Nina Paley.", clipStart: 0, clipEnd: 30, active: true },
+        { name: "Seder Masochism", id: "https://archive.org/download/sedermasochism/Seder-Masochism%20final%2005-18-18.m4v", poster: "SEDER MASOCHISM.jpg", desc: "A new animated musical from the creator of Sita Sings the Blues.", clipStart: 0, clipEnd: 30, active: true },
+        { name: "Elephant's Dream", id: "https://archive.org/download/ElephantsDream/ed_hd.mp4", poster: "Elephant's Dream.jpg", desc: "The Orange Open Movie Project presents Elephants Dream.", clipStart: 0, clipEnd: 30, active: true },
+        { name: "Sintel", id: "https://archive.org/download/Sintel/sintel-2048-surround.mp4", poster: "SINTEL.jpg", desc: "An epic open movie fantasy adventure about a young girl and her dragon companion.", clipStart: 0, clipEnd: 30, active: true },
+        { name: "Caminandes", id: "https://archive.org/download/Caminandesep13BlenderAnimatedShort2013/Caminandes%20%28ep%201-3%29%20Blender%20Animated%20Short%2C%202013.MP4", poster: "Caminandes.jpg", desc: "Winner of the Jerry Goldsmith Award for Best Score for an Animated Short Film.", clipStart: 0, clipEnd: 30, active: true },
+        { name: "Wing It!", id: "k3Ew1cpbCNORcaI0Rd4", poster: "WING IT!.jpg", desc: "A Pet Project featuring pet-powered engineering and blueprint animation.", clipStart: 0, clipEnd: 30, active: true },
+        { name: "Singularity", id: "k2eujPHk8SEel6I0S7Q", poster: "SINGULARITY.jpg", desc: "Sci-fi visual art and conceptual masterpiece exploring cybernetic evolution.", clipStart: 0, clipEnd: 30, active: true },
+        { name: "Alike", id: "k2e7gbx9XzULtxI0Sr0", poster: "Alike.jpg", desc: "Directed by Daniel Martínez Lara & Rafa Cano Méndez. A touching animated short.", clipStart: 0, clipEnd: 30, active: true }
       ]
     },
     {
@@ -909,6 +962,7 @@
   let videoCurrentTime = 0;
   let videoDuration = 0;
   let isUserSeeking = false;
+  let isDirectVideoMode = false;
 
   function renderCategoryJumpBar() {
     const navBar = document.getElementById('category-nav-bar');
@@ -946,7 +1000,6 @@
       headingDiv.innerText = cat.categoryName;
       headingWrap.appendChild(headingDiv);
 
-      /* Directional Row Scroll Buttons for Mouse / Keyboard Navigation */
       let controlsDiv = document.createElement('div');
       controlsDiv.className = 'row-scroll-controls';
 
@@ -1005,6 +1058,10 @@
     }
   }
 
+  function isDirectUrl(url) {
+    return url.startsWith('http://') || url.startsWith('https://');
+  }
+
   function selectMovieForPreview(movie) {
     currentSelectedMovie = movie;
     document.getElementById('hero-title').innerText = movie.name;
@@ -1018,15 +1075,31 @@
 
   function updateHeroIframeSource() {
     const heroIframe = document.getElementById('hero-iframe');
+    const heroVideo = document.getElementById('hero-video');
     let previewId = currentSelectedMovie.isSeries ? currentSelectedMovie.episodes[0].id : currentSelectedMovie.id;
-    let muteVal = isHeroMuted ? 1 : 0;
 
     if (currentSelectedMovie.active && previewId) {
-      heroIframe.src = `https://www.dailymotion.com/embed/video/${previewId}?autoplay=1&mute=${muteVal}&controls=0&start=${currentSelectedMovie.clipStart}&end=${currentSelectedMovie.clipEnd}&loop=1&queue-enable=0&sharing-enable=0&related-video=0`;
-      heroIframe.style.display = "block";
+      if (isDirectUrl(previewId)) {
+        heroIframe.src = "";
+        heroIframe.style.display = "none";
+        heroVideo.src = previewId;
+        heroVideo.muted = isHeroMuted;
+        heroVideo.currentTime = currentSelectedMovie.clipStart || 0;
+        heroVideo.style.display = "block";
+        heroVideo.play().catch(() => {});
+      } else {
+        heroVideo.pause();
+        heroVideo.src = "";
+        heroVideo.style.display = "none";
+        let muteVal = isHeroMuted ? 1 : 0;
+        heroIframe.src = `https://www.dailymotion.com/embed/video/${previewId}?autoplay=1&mute=${muteVal}&controls=0&start=${currentSelectedMovie.clipStart}&end=${currentSelectedMovie.clipEnd}&loop=1&queue-enable=0&sharing-enable=0&related-video=0`;
+        heroIframe.style.display = "block";
+      }
     } else {
       heroIframe.src = "";
       heroIframe.style.display = "none";
+      heroVideo.src = "";
+      heroVideo.style.display = "none";
     }
   }
 
@@ -1034,7 +1107,13 @@
     isHeroMuted = !isHeroMuted;
     const btn = document.getElementById('hero-unmute-btn');
     btn.innerText = isHeroMuted ? "🔊 UNMUTE" : "🔇 MUTE";
-    updateHeroIframeSource();
+    
+    const heroVideo = document.getElementById('hero-video');
+    if (heroVideo.style.display !== "none") {
+      heroVideo.muted = isHeroMuted;
+    } else {
+      updateHeroIframeSource();
+    }
   }
 
   function openDetailsModal(movie) {
@@ -1054,7 +1133,7 @@
       watchBtn.style.display = "none";
       epList.innerHTML = "";
 
-      movie.episodes.forEach((ep, index) => {
+      movie.episodes.forEach((ep) => {
         let epBtn = document.createElement('button');
         epBtn.className = 'details-ep-btn';
         epBtn.tabIndex = 0;
@@ -1105,6 +1184,8 @@
     const modal = document.getElementById('full-player-modal');
     const titleElem = document.getElementById('full-player-title');
     const iframe = document.getElementById('full-player-iframe');
+    const video = document.getElementById('full-player-video');
+    const controlsBar = document.getElementById('fs-transient-controls');
 
     const fullText = `D.A.P ON-DEMAND: ${titleText}   &bull;   `;
     titleElem.innerHTML = fullText + fullText;
@@ -1113,8 +1194,28 @@
     videoDuration = 0;
     updateSeekUI();
 
-    /* Crucial: api=postMessage enables cross-domain JS postMessage controls */
-    iframe.src = `https://www.dailymotion.com/embed/video/${videoId}?autoplay=1&mute=0&controls=1&api=postMessage&queue-enable=0&sharing-enable=0&related-video=0`;
+    if (isDirectUrl(videoId)) {
+      isDirectVideoMode = true;
+      iframe.src = "";
+      iframe.style.display = 'none';
+      
+      video.src = videoId;
+      video.style.display = 'block';
+      video.play().catch(() => {});
+
+      controlsBar.classList.remove('hide-custom-controls');
+    } else {
+      isDirectVideoMode = false;
+      video.pause();
+      video.src = "";
+      video.style.display = 'none';
+
+      iframe.src = `https://www.dailymotion.com/embed/video/${videoId}?autoplay=1&mute=0&controls=1&api=postMessage&queue-enable=0&sharing-enable=0&related-video=0`;
+      iframe.style.display = 'block';
+
+      controlsBar.classList.add('hide-custom-controls');
+    }
+
     modal.style.display = 'flex';
     modal.focus();
 
@@ -1125,8 +1226,11 @@
   function closeFullFeature() {
     const modal = document.getElementById('full-player-modal');
     const iframe = document.getElementById('full-player-iframe');
+    const video = document.getElementById('full-player-video');
     
     iframe.src = "";
+    video.pause();
+    video.src = "";
 
     if (document.fullscreenElement || document.webkitFullscreenElement) {
       if (document.exitFullscreen) { document.exitFullscreen(); }
@@ -1161,31 +1265,58 @@
 
   function togglePlayPause() {
     const btn = document.getElementById('fs-play-pause-btn');
-    isPlaying = !isPlaying;
-    if (isPlaying) {
-      btn.innerText = "⏸ PAUSE";
-      sendIframeCommand('play');
+    const video = document.getElementById('full-player-video');
+
+    if (isDirectVideoMode) {
+      if (video.paused) {
+        video.play();
+        isPlaying = true;
+        btn.innerText = "⏸ PAUSE";
+      } else {
+        video.pause();
+        isPlaying = false;
+        btn.innerText = "▶ PLAY";
+      }
     } else {
-      btn.innerText = "▶ PLAY";
-      sendIframeCommand('pause');
+      isPlaying = !isPlaying;
+      if (isPlaying) {
+        btn.innerText = "⏸ PAUSE";
+        sendIframeCommand('play');
+      } else {
+        btn.innerText = "▶ PLAY";
+        sendIframeCommand('pause');
+      }
     }
   }
 
   function togglePlayerMute() {
     const btn = document.getElementById('fs-mute-btn');
-    isPlayerMuted = !isPlayerMuted;
-    if (isPlayerMuted) {
-      btn.innerText = "🔇 MUTE";
-      sendIframeCommand('muted', 1);
+    const video = document.getElementById('full-player-video');
+
+    if (isDirectVideoMode) {
+      video.muted = !video.muted;
+      isPlayerMuted = video.muted;
+      btn.innerText = isPlayerMuted ? "🔇 MUTE" : "🔊 UNMUTE";
     } else {
-      btn.innerText = "🔊 UNMUTE";
-      sendIframeCommand('muted', 0);
+      isPlayerMuted = !isPlayerMuted;
+      if (isPlayerMuted) {
+        btn.innerText = "🔇 MUTE";
+        sendIframeCommand('muted', 1);
+      } else {
+        btn.innerText = "🔊 UNMUTE";
+        sendIframeCommand('muted', 0);
+      }
     }
   }
 
   function adjustVolume(val) {
     let vol = val / 100;
-    sendIframeCommand('volume', vol);
+    if (isDirectVideoMode) {
+      const video = document.getElementById('full-player-video');
+      video.volume = vol;
+    } else {
+      sendIframeCommand('volume', vol);
+    }
   }
 
   function changeChannel(direction) {
@@ -1227,7 +1358,12 @@
 
   function seekTo(val) {
     videoCurrentTime = parseFloat(val);
-    sendIframeCommand('seek', videoCurrentTime);
+    if (isDirectVideoMode) {
+      const video = document.getElementById('full-player-video');
+      video.currentTime = videoCurrentTime;
+    } else {
+      sendIframeCommand('seek', videoCurrentTime);
+    }
     updateSeekUI();
   }
 
@@ -1248,10 +1384,26 @@
     seekTo(val);
   }
 
+  /* HTML5 Video Element Listeners for Direct Archive Files */
+  const nativeVideo = document.getElementById('full-player-video');
+  nativeVideo.addEventListener('timeupdate', () => {
+    if (isDirectVideoMode) {
+      videoCurrentTime = nativeVideo.currentTime;
+      updateSeekUI();
+    }
+  });
+
+  nativeVideo.addEventListener('loadedmetadata', () => {
+    if (isDirectVideoMode) {
+      videoDuration = nativeVideo.duration;
+      updateSeekUI();
+    }
+  });
+
   /* Direct Dailymotion postMessage Event Listener */
   window.addEventListener('message', function(event) {
     try {
-      if (typeof event.data === 'string') {
+      if (typeof event.data === 'string' && !isDirectVideoMode) {
         const params = new URLSearchParams(event.data);
         const eventName = params.get('event');
 
