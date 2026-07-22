@@ -224,6 +224,7 @@
       box-shadow: 0 8px 25px rgba(0,0,0,0.8);
       display: flex;
       flex-direction: column;
+      max-height: 90vh;
     }
 
     .details-poster-banner {
@@ -233,7 +234,10 @@
       background: #111;
     }
 
-    .details-text-area { padding: 20px; }
+    .details-text-area { 
+      padding: 20px; 
+      overflow-y: auto;
+    }
 
     #details-modal-title {
       color: #FFD700;
@@ -274,6 +278,7 @@
       font-weight: bold;
       border-radius: 4px;
       cursor: pointer;
+      width: 100%;
     }
     .close-details-btn:hover { background: #FFD700; color: #000; }
 
@@ -592,7 +597,7 @@
       </div>
 
       <div class="details-btn-row" id="details-main-action-row">
-        <button class="watch-now-btn" onclick="openFullFeature()">▶ Watch Now</button>
+        <button class="watch-now-btn" id="details-watch-now-btn" onclick="openFullFeature()">▶ Watch Now</button>
         <button class="close-details-btn" onclick="closeDetailsModal()">Close</button>
       </div>
     </div>
@@ -835,11 +840,11 @@
 
     const epContainer = document.getElementById('details-episode-container');
     const epList = document.getElementById('details-episode-list');
-    const mainActionRow = document.getElementById('details-main-action-row');
+    const watchBtn = document.getElementById('details-watch-now-btn');
 
     if (movie.isSeries) {
       epContainer.style.display = "block";
-      mainActionRow.style.display = "none";
+      watchBtn.style.display = "none";
       epList.innerHTML = "";
 
       movie.episodes.forEach(ep => {
@@ -854,7 +859,7 @@
       });
     } else {
       epContainer.style.display = "none";
-      mainActionRow.style.display = "flex";
+      watchBtn.style.display = "block";
     }
 
     document.getElementById('details-modal').style.display = 'flex';
@@ -1084,6 +1089,8 @@
       else if (e.key === 'f' || e.key === 'F') { e.preventDefault(); toggleFullScreen(); }
       else if (e.key === 'm' || e.key === 'M') { e.preventDefault(); togglePlayerMute(); }
       else if (e.key === 'Escape') { closeFullFeature(); }
+    } else if (document.getElementById('details-modal').style.display === 'flex') {
+      if (e.key === 'Escape') { closeDetailsModal(); }
     }
   });
 
