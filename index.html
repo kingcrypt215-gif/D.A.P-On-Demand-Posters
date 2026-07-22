@@ -8,6 +8,10 @@
     /* Universal Base Reset & Safety Insets for Notch / TV Edge-Gaps */
     *, *::before, *::after { box-sizing: border-box; }
     
+    html {
+      scroll-behavior: smooth;
+    }
+
     body { 
       background: #000; 
       color: #fff; 
@@ -28,6 +32,41 @@
       letter-spacing: 1px; 
     }
     
+    /* Quick Category Jump Bar for Remote, Mouse & Touch Navigation */
+    #category-nav-bar {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      padding: 10px 15px;
+      background: #0a0a0a;
+      border-top: 1px solid #222;
+      border-bottom: 1px solid #FFD700;
+      scroll-behavior: smooth;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    #category-nav-bar::-webkit-scrollbar { display: none; }
+
+    .cat-nav-pill {
+      background: #181818;
+      color: #FFD700;
+      border: 1px solid rgba(255, 215, 0, 0.4);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: bold;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+    }
+    .cat-nav-pill:hover, .cat-nav-pill:focus {
+      background: #FFD700;
+      color: #000;
+      outline: none;
+      transform: scale(1.05);
+    }
+
     /* Netflix Style Billboard / Hero Preview Area */
     #hero-container {
       position: relative;
@@ -157,21 +196,63 @@
       outline: 2px solid #fff;
     }
 
-    /* Netflix Style Horizontal Rows Section */
+    /* On-Demand Horizontal Rows Section & Vertical Snap Engine */
     #vod-catalog-section {
       padding: 20px 15px;
       background: #000;
+      scroll-snap-type: y proximity;
     }
 
     .category-section {
-      margin-bottom: 25px;
+      margin-bottom: 35px;
+      scroll-snap-align: start;
+      scroll-margin-top: 15px;
+      position: relative;
+    }
+
+    .section-heading-wrap {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
     }
 
     .section-heading {
       color: #FFD700;
-      font-size: clamp(16px, 3vw, 20px);
+      font-size: clamp(16px, 3vw, 22px);
       font-weight: bold;
-      margin-bottom: 12px;
+      letter-spacing: 0.5px;
+    }
+
+    /* Directional Row Control Buttons for Mouse & Remote Users */
+    .row-scroll-controls {
+      display: flex;
+      gap: 6px;
+    }
+
+    .row-scroll-btn {
+      background: #181818;
+      color: #FFD700;
+      border: 1px solid rgba(255, 215, 0, 0.5);
+      border-radius: 4px;
+      width: 32px;
+      height: 32px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+    .row-scroll-btn:hover, .row-scroll-btn:focus {
+      background: #FFD700;
+      color: #000;
+      outline: none;
+    }
+
+    .poster-row-wrapper {
+      position: relative;
     }
 
     .poster-row {
@@ -624,6 +705,9 @@
 
 <div id="brand">D.A.P ON-DEMAND</div>
 
+<!-- Quick Category Jump Header Bar -->
+<div id="category-nav-bar"></div>
+
 <!-- Netflix Style Hero Billboard Preview Player -->
 <div id="hero-container">
   <div class="hero-vignette"></div>
@@ -822,21 +906,69 @@
   let videoDuration = 0;
   let isUserSeeking = false;
 
+  function renderCategoryJumpBar() {
+    const navBar = document.getElementById('category-nav-bar');
+    navBar.innerHTML = "";
+
+    categoriesData.forEach((cat, index) => {
+      let pill = document.createElement('button');
+      pill.className = 'cat-nav-pill';
+      pill.tabIndex = 0;
+      pill.innerText = cat.categoryName;
+      pill.onclick = () => {
+        const targetSection = document.getElementById(`cat-sec-${index}`);
+        if (targetSection) {
+          targetSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      };
+      navBar.appendChild(pill);
+    });
+  }
+
   function renderCategories() {
     const container = document.getElementById('categories-container');
     container.innerHTML = "";
 
-    categoriesData.forEach(cat => {
+    categoriesData.forEach((cat, catIndex) => {
       let sectionDiv = document.createElement('div');
       sectionDiv.className = 'category-section';
+      sectionDiv.id = `cat-sec-${catIndex}`;
+
+      let headingWrap = document.createElement('div');
+      headingWrap.className = 'section-heading-wrap';
 
       let headingDiv = document.createElement('div');
       headingDiv.className = 'section-heading';
       headingDiv.innerText = cat.categoryName;
-      sectionDiv.appendChild(headingDiv);
+      headingWrap.appendChild(headingDiv);
+
+      /* Directional Row Scroll Buttons for Mouse / Keyboard Navigation */
+      let controlsDiv = document.createElement('div');
+      controlsDiv.className = 'row-scroll-controls';
+
+      let leftBtn = document.createElement('button');
+      leftBtn.className = 'row-scroll-btn';
+      leftBtn.innerText = '‹';
+      leftBtn.title = 'Scroll Left';
+      leftBtn.onclick = () => scrollRow(`poster-row-${catIndex}`, -300);
+
+      let rightBtn = document.createElement('button');
+      rightBtn.className = 'row-scroll-btn';
+      rightBtn.innerText = '›';
+      rightBtn.title = 'Scroll Right';
+      rightBtn.onclick = () => scrollRow(`poster-row-${catIndex}`, 300);
+
+      controlsDiv.appendChild(leftBtn);
+      controlsDiv.appendChild(rightBtn);
+      headingWrap.appendChild(controlsDiv);
+      sectionDiv.appendChild(headingWrap);
+
+      let rowWrapper = document.createElement('div');
+      rowWrapper.className = 'poster-row-wrapper';
 
       let rowDiv = document.createElement('div');
       rowDiv.className = 'poster-row';
+      rowDiv.id = `poster-row-${catIndex}`;
 
       cat.titles.forEach(movie => {
         let card = document.createElement('div');
@@ -856,9 +988,17 @@
         rowDiv.appendChild(card);
       });
 
-      sectionDiv.appendChild(rowDiv);
+      rowWrapper.appendChild(rowDiv);
+      sectionDiv.appendChild(rowWrapper);
       container.appendChild(sectionDiv);
     });
+  }
+
+  function scrollRow(rowId, distance) {
+    const row = document.getElementById(rowId);
+    if (row) {
+      row.scrollBy({ left: distance, behavior: 'smooth' });
+    }
   }
 
   function selectMovieForPreview(movie) {
@@ -1253,6 +1393,7 @@
     openDetailsModal(currentSelectedMovie);
   }
 
+  renderCategoryJumpBar();
   renderCategories();
   selectMovieForPreview(allMovies[0]);
 </script>
