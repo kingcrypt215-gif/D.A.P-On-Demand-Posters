@@ -906,13 +906,11 @@
     {
       categoryName: "Indie Docs Spotlight",
       titles: [
-        { name: "56", id: "", poster: "56.jpg", desc: "Award-winning documentary short featured at the 51st United Nations Human Rights Council.", clipStart: 0, clipEnd: 30, active: false },
-        { name: "Bucket", id: "", poster: "BUCKET.jpg", desc: "A Best Home Films production directed by LucasBrothers.", clipStart: 0, clipEnd: 30, active: false },
-        { name: "Miami's Little Havana", id: "", poster: "MIAMI'S LITTLE HAVANA.jpg", desc: "A documentary film directed by Marcus Bauer exploring culture and community.", clipStart: 0, clipEnd: 30, active: false },
-        { name: "The Alchemy of Spirit", id: "", poster: "THE ALCHEMY OF SPIRIT.jpg", desc: "A film directed by Droid ID exploring inner transformation by the water.", clipStart: 0, clipEnd: 30, active: false },
-        { name: "Angels", id: "", poster: "ANGELS.jpg", desc: "A film by Jane Labous. A powerful new documentary exploring a silent crisis.", clipStart: 0, clipEnd: 30, active: false },
-        { name: "Cheap & Clean", id: "", poster: "CHEAP & CLEAN.jpg", desc: "A film by Ebony G. Patterson. An exploration into dancehall culture.", clipStart: 0, clipEnd: 30, active: false },
-        { name: "Between the Lines", id: "", poster: "Between the Lines.jpg", desc: "A fly fishing documentary film exploring wild waters.", clipStart: 0, clipEnd: 30, active: false }
+        { name: "Bucket", id: "k6LdiAFVGFRJYAI5Lj0", poster: "BUCKET.jpg", desc: "A Best Home Films production directed by LucasBrothers.", clipStart: 0, clipEnd: 30, active: true },
+        { name: "Miami's Little Havana", id: "k6P5q00ubIww7tI5MqK", poster: "MIAMI'S LITTLE HAVANA.jpg", desc: "A documentary film directed by Marcus Bauer exploring culture and community.", clipStart: 0, clipEnd: 30, active: true },
+        { name: "The Alchemy of Spirit", id: "k3hPm9tE95r9dsI5QqW", poster: "THE ALCHEMY OF SPIRIT.jpg", desc: "A film directed by Droid ID exploring inner transformation by the water.", clipStart: 0, clipEnd: 30, active: true },
+        { name: "Angels", id: "kuUtbQxzQrxx8lI5U2G", poster: "ANGELS.jpg", desc: "A film by Jane Labous. A powerful new documentary exploring a silent crisis.", clipStart: 0, clipEnd: 30, active: true },
+        { name: "Between the Lines", id: "k6YSaxqhap1ewXI5ULQ", poster: "Between the Lines.jpg", desc: "A fly fishing documentary film exploring wild waters.", clipStart: 0, clipEnd: 30, active: true }
       ]
     },
     {
@@ -1106,7 +1104,7 @@
   function toggleHeroMute() {
     isHeroMuted = !isHeroMuted;
     const btn = document.getElementById('hero-unmute-btn');
-    btn.innerText = isHeroMuted ? "🔊 UNMUTE" : "🔇 MUTE";
+    btn.innerText = isHeroMuted ? "🔊 UNMUTE" : "0; MUTE";
     
     const heroVideo = document.getElementById('hero-video');
     if (heroVideo.style.display !== "none") {
@@ -1296,11 +1294,11 @@
     if (isDirectVideoMode) {
       video.muted = !video.muted;
       isPlayerMuted = video.muted;
-      btn.innerText = isPlayerMuted ? "🔇 MUTE" : "🔊 UNMUTE";
+      btn.innerText = isPlayerMuted ? "0; MUTE" : "🔊 UNMUTE";
     } else {
       isPlayerMuted = !isPlayerMuted;
       if (isPlayerMuted) {
-        btn.innerText = "🔇 MUTE";
+        btn.innerText = "0; MUTE";
         sendIframeCommand('muted', 1);
       } else {
         btn.innerText = "🔊 UNMUTE";
