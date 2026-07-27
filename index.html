@@ -916,14 +916,74 @@
     {
       categoryName: "Anime Spotlight",
       titles: [
-        { name: "Sol Lavante", id: "", poster: "SOL LAVANTE.jpg", desc: "An immersive hand-drawn animated short film experience.", clipStart: 0, clipEnd: 30, active: false },
-        { name: "Morevna", id: "", poster: "MOREVNA.jpg", desc: "Action-packed open source animated project featuring sharp blade choreography.", clipStart: 0, clipEnd: 30, active: false },
+        { 
+          name: "Sol Levante", 
+          id: "https://archive.org/download/Sol-Levante-Netflix-HDR10/Sol%20Levante%20%28Short%202020%29%20Netflix%204K%20HDR10%20-%20x265.mp4", 
+          poster: "SOL LAVANTE.jpg", 
+          desc: "An immersive hand-drawn animated short film experience in stunning 4K HDR.", 
+          clipStart: 0, clipEnd: 30, active: true 
+        },
+        { 
+          name: "Morevna", 
+          id: "k2ImkakSHjwYTNI6idg",
+          isSeries: true,
+          episodes: [
+            { title: "Ep. 3-0-2 English", id: "k2ImkakSHjwYTNI6idg" },
+            { title: "Ep. 4-0-2 English", id: "k6KT9y1G8pVwpUI6iIi" }
+          ],
+          poster: "MOREVNA.jpg", 
+          desc: "Action-packed open source animated project featuring sharp blade choreography.", 
+          clipStart: 0, clipEnd: 30, active: true 
+        },
         { name: "Red", id: "", poster: "Red.jpg", desc: "An atmospheric thriller navigating the deep shadows of a scarlet forest.", clipStart: 0, clipEnd: 30, active: false },
-        { name: "SpellBound", id: "", poster: "SpellBound.jpg", desc: "An animated journey of wonder, mail delivery, and magical neighborhood thresholds.", clipStart: 0, clipEnd: 30, active: false },
-        { name: "Senpai", id: "", poster: "SENPAI.jpg", desc: "Anime-style club adventures and high school antics.", clipStart: 0, clipEnd: 30, active: false },
-        { name: "Space Transformers", id: "", poster: "SPACE TRANSFORMERS.jpg", desc: "Mecha combat and interstellar warfare across futuristic retro gridlines.", clipStart: 0, clipEnd: 30, active: false },
-        { name: "Raiders of Galaxy", id: "", poster: "RAIDERS OF GALAXY.jpg", desc: "An Adda Audio Visual Ltd. production and a Joseph Lai release. Sci-fi action.", clipStart: 0, clipEnd: 30, active: false },
-        { name: "Princess Iron Fan", id: "", poster: "Princess Iron Fan.jpg", desc: "China's first animated feature film (1941) from the Chinese Film Classics Collection.", clipStart: 0, clipEnd: 30, active: false }
+        { 
+          name: "SpellBound", 
+          id: "k48JZj5LNoG3J9I80We", 
+          poster: "SpellBound.jpg", 
+          desc: "An animated journey of wonder, mail delivery, and magical neighborhood thresholds.", 
+          clipStart: 0, clipEnd: 30, active: true 
+        },
+        { 
+          name: "Senpai", 
+          id: "k5PFt2VMrsiwsiI9gpw",
+          isSeries: true,
+          episodes: [
+            { title: "Ep.1 Part 1", id: "k5PFt2VMrsiwsiI9gpw" },
+            { title: "Ep.1 Part 2", id: "k2Re7zL5us78x7I9gv8" },
+            { title: "Ep.1 Part 3", id: "k6VElejyKdzG9jI9JE2" },
+            { title: "Ep.2 Part 1", id: "k6UiDCu2Tw6HhkI9JP8" },
+            { title: "Ep.2 Part 2", id: "k7kOhXCiYgKR7lI9K0q" },
+            { title: "Ep.3 Part 1", id: "k6FbDrXpUOnUrdI9Kgy" },
+            { title: "Ep.3 Part 2", id: "k4XqMDtJRSTCFrI9Kqi" },
+            { title: "Senpai Club Our Hero", id: "k7c7bnydbIJjyUI9KGy" },
+            { title: "Senpai Club Picnic", id: "k3bFsUCJVqivXII9KPw" },
+            { title: "Senpai Club Five years Later", id: "k7AvLHMuNth12UI9KVQ" }
+          ],
+          poster: "SENPAI.jpg", 
+          desc: "Anime-style club adventures and high school antics.", 
+          clipStart: 0, clipEnd: 30, active: true 
+        },
+        { 
+          name: "Space Transformers", 
+          id: "https://archive.org/download/SpaceTransformer-animeClassic/SpaceTransformer.mp4", 
+          poster: "SPACE TRANSFORMERS.jpg", 
+          desc: "Mecha combat and interstellar warfare across futuristic retro gridlines.", 
+          clipStart: 0, clipEnd: 30, active: true 
+        },
+        { 
+          name: "Raiders of Galaxy", 
+          id: "https://archive.org/download/RaidersOfGalaxy-animeClassic/RaidersOfGalaxy.mp4", 
+          poster: "RAIDERS OF GALAXY.jpg", 
+          desc: "An Adda Audio Visual Ltd. production and a Joseph Lai release. Sci-fi action.", 
+          clipStart: 0, clipEnd: 30, active: true 
+        },
+        { 
+          name: "Princess Iron Fan", 
+          id: "https://archive.org/download/princess_iron_fan/princess_iron_fan.mp4", 
+          poster: "Princess Iron Fan.jpg", 
+          desc: "China's first animated feature film (1941) from the Chinese Film Classics Collection.", 
+          clipStart: 0, clipEnd: 30, active: true 
+        }
       ]
     },
     {
@@ -1104,7 +1164,7 @@
   function toggleHeroMute() {
     isHeroMuted = !isHeroMuted;
     const btn = document.getElementById('hero-unmute-btn');
-    btn.innerText = isHeroMuted ? "🔊 UNMUTE" : "0; MUTE";
+    btn.innerText = isHeroMuted ? "🔊 UNMUTE" : "🔇 MUTE";
     
     const heroVideo = document.getElementById('hero-video');
     if (heroVideo.style.display !== "none") {
@@ -1294,11 +1354,11 @@
     if (isDirectVideoMode) {
       video.muted = !video.muted;
       isPlayerMuted = video.muted;
-      btn.innerText = isPlayerMuted ? "0; MUTE" : "🔊 UNMUTE";
+      btn.innerText = isPlayerMuted ? "🔇 MUTE" : "🔊 UNMUTE";
     } else {
       isPlayerMuted = !isPlayerMuted;
       if (isPlayerMuted) {
-        btn.innerText = "0; MUTE";
+        btn.innerText = "🔇 MUTE";
         sendIframeCommand('muted', 1);
       } else {
         btn.innerText = "🔊 UNMUTE";
@@ -1318,7 +1378,7 @@
   }
 
   function changeChannel(direction) {
-    let activeMovies = allMovies.filter(m => m.active && m.id);
+    let activeMovies = allMovies.filter(m => m.active && (m.id || m.isSeries));
     if (activeMovies.length === 0) return;
 
     let activeIdx = activeMovies.findIndex(m => m.name === currentSelectedMovie.name);
@@ -1326,7 +1386,11 @@
 
     let nextIdx = (activeIdx + direction + activeMovies.length) % activeMovies.length;
     currentSelectedMovie = activeMovies[nextIdx];
-    playVideoId(currentSelectedMovie.id, currentSelectedMovie.name);
+
+    let playId = currentSelectedMovie.isSeries ? currentSelectedMovie.episodes[0].id : currentSelectedMovie.id;
+    let playTitle = currentSelectedMovie.isSeries ? `${currentSelectedMovie.name} - ${currentSelectedMovie.episodes[0].title}` : currentSelectedMovie.name;
+
+    playVideoId(playId, playTitle);
   }
 
   /* Seek & Timeline Control Functions */
